@@ -19,10 +19,15 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
 
+import com.example.infectiontracker.database.Beacon;
+import com.example.infectiontracker.database.OwnUUID;
+import com.example.infectiontracker.repository.BroadcastRepository;
+
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.UUID;
 
 public class TracingService extends Service {
@@ -45,10 +50,12 @@ public class TracingService extends Service {
     private UUID currentUUID;
     private byte[] broadcastData;
 
+    private BroadcastRepository mBroadcastRepository;
+
     private Runnable regenerateUUID = () -> {
-        //TODO store in DB
         currentUUID = UUID.randomUUID();
         long time = System.currentTimeMillis();
+        mBroadcastRepository.insertOwnUUID(new OwnUUID(currentUUID, new Date(time)));
 
         // Put the UUID and the current time together into one buffer and
         ByteBuffer inputBuffer = ByteBuffer.wrap(new byte[/*Long.BYTES*/ 8 * 3]);
@@ -70,6 +77,7 @@ public class TracingService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        mBroadcastRepository = new BroadcastRepository(this.getApplication());
         HandlerThread thread = new HandlerThread("TrackerHandler", Thread.NORM_PRIORITY);
         thread.start();
 
@@ -123,11 +131,15 @@ public class TracingService extends Service {
 
                 int deviceRSSI = result.getRssi();
 
-                ContactLogger.addContact("New contact: "+ deviceRSSI);
-
-                //TODO store
                 Log.i(LOG_TAG, "onScanResult");
                 Log.d(LOG_TAG, Arrays.toString(receivedHash) + ":" + deviceRSSI);
+                mBroadcastRepository.insertBeacon(new Beacon(
+                        receivedHash,
+                        currentUUID,
+                        new Date(System.currentTimeMillis()),
+                        //TODO calculate Risk
+                        0
+                ));
             }
         };
         bluetoothLeScanner.startScan(leScanCallback);
