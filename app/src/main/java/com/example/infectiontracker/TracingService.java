@@ -31,11 +31,16 @@ public class TracingService extends Service {
     private static final int BLUETOOTH_SIG = 2220;
     private static final int BROADCAST_LENGTH = 27;
 
+    public static final int STATUS_DISABLED = 0;
+    public static final int STATUS_ACTIVE = 1;
+    public static final int STATUS_ERROR = 2;
+
     private Looper serviceLooper;
     private Handler serviceHandler;
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothLeScanner bluetoothLeScanner;
     private BluetoothLeAdvertiser bluetoothLeAdvertiser;
+    private int status = STATUS_DISABLED;
 
     private UUID currentUUID;
     private byte[] broadcastData;
@@ -76,7 +81,21 @@ public class TracingService extends Service {
         assert bluetoothManager != null;
 
         bluetoothAdapter = bluetoothManager.getAdapter();
+        if(!bluetoothAdapter.isMultipleAdvertisementSupported()) {
+            Log.w(LOG_TAG, "BLE not supported!");
+            // TODO handle LE not available in UI
+            status = STATUS_ERROR;
+        }
+
+        if(!bluetoothAdapter.isEnabled()) {
+            Log.i(LOG_TAG, "Bluetooth is disabled");
+            // TODO is it possible to restart the service as soon as Bluetooth gets enabled?
+            status = STATUS_ERROR;
+            return;
+        }
+
         bluetoothLeAdvertiser = bluetoothAdapter.getBluetoothLeAdvertiser();
+
         bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
 
         regenerateUUID.run();
@@ -91,6 +110,7 @@ public class TracingService extends Service {
 
                 // if there is no record, discard this packet
                 if (record == null) {
+                    ContactLogger.addContact("Bluetooth problem");
                     return;
                 }
 
@@ -102,6 +122,8 @@ public class TracingService extends Service {
                 }
 
                 int deviceRSSI = result.getRssi();
+
+                ContactLogger.addContact("New contact: "+ deviceRSSI);
 
                 //TODO store
                 Log.i(LOG_TAG, "onScanResult");
