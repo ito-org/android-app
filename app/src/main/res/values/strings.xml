@@ -12,4 +12,6 @@
 
     <string name="location_permission_required">This app needs to be granted the location permission in order to use bluetooth.</string>
     <string name="location_permission_grant_permission">Ask again</string>
+
+    <string name="contact_logger_title">Log Contacts</string>
 </resources>
