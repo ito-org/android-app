@@ -20,10 +20,10 @@ public class Beacon {
     public Beacon(byte[] receivedHash,
                   UUID ownUUID,
                   Date timestamp,
-                  int risk) {
+                  int distance) {
         this.receivedHash = receivedHash;
         this.ownUUID = ownUUID;
         this.timestamp = timestamp;
-        this.distance = risk;
+        this.distance = distance;
     }
 }

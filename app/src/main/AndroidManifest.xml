@@ -49,6 +49,12 @@
             android:label="@string/contact_logger_title"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
+
+        <activity
+            android:name=".DataProtectionInfo"
+            android:label="@string/dataprotection_title"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
     </application>
 
 </manifest>

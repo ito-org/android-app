@@ -18,4 +18,23 @@
     <string name="notification_title">COVID-19 contact tracing</string>
     <string name="notification_message">COVID-19 contact tracing is active</string>
     <string name="notification_channel">Notifications about COVID-19 contact tracing activity</string>
+
+    <string name="dataprotection_title">Data protection information</string>
+    <string name="dataprotection_ok">OK</string>
+    <string name="dataprotection_content">
+        <![CDATA[
+        This app collects the contacts you have with others to inform you if you had contact with
+        a potential infected or to inform others of your potential infection. This data collection
+        is done as privacy conscious as possible:
+        <br>
+        <br>
+        <ul>
+            <li>Data is collected locally on your phone and <u>only</u> leaves your phone when you are infected </li>
+            <li>Contact data is anonymized and de-anonymization is only possible once you are infected (except contact data you explicitly add via QR-codes)</li>
+            <li>Contact data older than two weeks is deleted</li>
+        </ul>
+        <br>
+        <a href="http://infectionchain.online/dataprotection">More information</a>
+        ]]>
+    </string>
 </resources>
