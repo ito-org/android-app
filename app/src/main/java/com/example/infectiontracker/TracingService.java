@@ -44,7 +44,7 @@ public class TracingService extends Service {
     private static final String LOG_TAG = "TracingService";
     private static final int BLUETOOTH_SIG = 2220;
     private static final int BROADCAST_LENGTH = 26;
-    private static final String DEFAULT_NOTIFICATION_CHANNEL = "ContactTracing";
+    private static final String DEFAULT_NOTIFICATION_CHANNEL = "ContactTracing3";
     private static final int NOTIFICATION_ID = 1;
 
     public static final int STATUS_DISABLED = 0;
@@ -209,6 +209,7 @@ public class TracingService extends Service {
         mChannel.setDescription(getText(R.string.notification_channel).toString());
         mChannel.enableLights(true);
         mChannel.setLightColor(Color.BLUE);
+        mChannel.setImportance(NotificationManager.IMPORTANCE_LOW);
         notificationManager.createNotificationChannel(mChannel);
     }
 
@@ -228,7 +229,8 @@ public class TracingService extends Service {
                 .setContentText(getText(R.string.notification_message))
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentIntent(pendingIntent)
-                .setPriority(NotificationManager.IMPORTANCE_MAX)
+                .setPriority(NotificationManager.IMPORTANCE_LOW)
+                .setVibrate(null)
                 .build();
 
         startForeground(NOTIFICATION_ID, notification);
