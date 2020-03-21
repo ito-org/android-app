@@ -30,6 +30,14 @@ public class MainActivity extends AppCompatActivity {
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
+        else {
+            startTracingService();
+        }
+    }
+
+    private void startTracingService() {
+        Intent intent = new Intent(this, TracingService.class);
+        startService(intent);
     }
 
     @Override
@@ -42,18 +50,12 @@ public class MainActivity extends AppCompatActivity {
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     findViewById(R.id.card_permission_required).setVisibility(View.GONE);
                     // Start background service
-                    Intent intent = new Intent(this, TracingService.class);
-                    startService(intent);
+                    startTracingService();
                 } else {
                     // Don't start the discovery service
                     //TODO: Hint in UI to request permissions again
                     findViewById(R.id.card_permission_required).setVisibility(View.VISIBLE);
-                    findViewById(R.id.ask_permission).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            checkPermissions();
-                        }
-                    });
+                    findViewById(R.id.ask_permission).setOnClickListener(view -> checkPermissions());
                 }
                 return;
             }
