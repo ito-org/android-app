@@ -17,19 +17,19 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
-import android.os.ParcelUuid;
 import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.UUID;
 
 public class TracingService extends Service {
     private static final int UUID_VALID_TIME = 1000 * 60 * 60; //ms * sec * min = 1h
     private static final String LOG_TAG = "TracingService";
+    private static final int BLUETOOTH_SIG = 2220;
+    private static final int BROADCAST_LENGTH = 27;
 
     private Looper serviceLooper;
     private Handler serviceHandler;
@@ -37,7 +37,6 @@ public class TracingService extends Service {
     private BluetoothLeScanner bluetoothLeScanner;
     private BluetoothLeAdvertiser bluetoothLeAdvertiser;
 
-    private ByteBuffer inputBuffer = ByteBuffer.wrap(new byte[/*Long.BYTES*/ 8 * 3]);
     private UUID currentUUID;
     private byte[] broadcastData;
 
@@ -46,28 +45,22 @@ public class TracingService extends Service {
         currentUUID = UUID.randomUUID();
         long time = System.currentTimeMillis();
 
-        //TODO test
+        // Put the UUID and the current time together into one buffer and
+        ByteBuffer inputBuffer = ByteBuffer.wrap(new byte[/*Long.BYTES*/ 8 * 3]);
         inputBuffer.putLong(0, currentUUID.getMostSignificantBits());
         inputBuffer.putLong(4, currentUUID.getLeastSignificantBits());
         inputBuffer.putLong(8, time);
 
         try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-224");
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
             broadcastData = digest.digest(inputBuffer.array());
+            broadcastData = Arrays.copyOf(broadcastData, BROADCAST_LENGTH);
         } catch (NoSuchAlgorithmException e) {
             Log.wtf(LOG_TAG, "Algorithm not found", e);
         }
 
         serviceHandler.postDelayed(this.regenerateUUID, UUID_VALID_TIME);
     };
-
-    /*
-    Don't do anything here, because the service doesn't have to communicate to other apps
-     */
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
 
     @Override
     public void onCreate() {
@@ -95,27 +88,24 @@ public class TracingService extends Service {
         ScanCallback leScanCallback = new ScanCallback() {
             public void onScanResult(int callbackType, ScanResult result) {
                 ScanRecord record = result.getScanRecord();
-                ByteBuffer transferredData = ByteBuffer.wrap(new byte[29]);
-                try {
-                    Map<ParcelUuid, byte[]> serviceData = record.getServiceData();
-                    ParcelUuid key = serviceData.keySet().iterator().next();
-                    UUID uuid = key.getUuid();
-                    transferredData.putLong(uuid.getMostSignificantBits());
-                    transferredData.putLong(uuid.getLeastSignificantBits());
-                    transferredData.put(serviceData.get(key));
-                } catch (Exception e) {
-                    Log.e(LOG_TAG, "unsupported");
+
+                // if there is no record, discard this packet
+                if (record == null) {
                     return;
                 }
 
-                Log.e(LOG_TAG, Arrays.toString(transferredData.array()));
+                byte[] receivedHash = record.getManufacturerSpecificData(BLUETOOTH_SIG);
+
+                // if there is no data, discard
+                if (receivedHash == null) {
+                    return;
+                }
 
                 int deviceRSSI = result.getRssi();
 
                 //TODO store
                 Log.i(LOG_TAG, "onScanResult");
-                //Log.d(LOG_TAG, Arrays.toString(receivedID));
-                Log.d(LOG_TAG, "" + deviceRSSI);
+                Log.d(LOG_TAG, Arrays.toString(receivedHash) + ":" + deviceRSSI);
             }
         };
         bluetoothLeScanner.startScan(leScanCallback);
@@ -123,25 +113,17 @@ public class TracingService extends Service {
 
     private void advertise() {
         AdvertiseSettings settings = new AdvertiseSettings.Builder()
-                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_POWER)
-                .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_LOW)
+                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
+                .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
                 .setConnectable(false)
+                .setTimeout(180000)
                 .build();
 
-        Log.e(LOG_TAG, Arrays.toString(this.broadcastData));
-        ByteBuffer broadcastData = ByteBuffer.allocate(29);
-        broadcastData.put((byte) 42);
-        broadcastData.put(this.broadcastData);
-        broadcastData.flip();
-        UUID serviceUUID = new UUID(broadcastData.getLong(), broadcastData.getLong());
-        ParcelUuid parcelUuid = new ParcelUuid(serviceUUID);
-        byte[] serviceData = new byte[13];
-        broadcastData.get(serviceData);
 
         AdvertiseData data = new AdvertiseData.Builder()
                 .setIncludeTxPowerLevel(false)
                 .setIncludeDeviceName(false)
-                .addServiceData(parcelUuid, serviceData)
+                .addManufacturerData(BLUETOOTH_SIG, broadcastData)
                 .build();
 
         AdvertiseCallback advertisingCallback = new AdvertiseCallback() {
@@ -149,12 +131,20 @@ public class TracingService extends Service {
             public void onStartSuccess(AdvertiseSettings settingsInEffect) {
                 super.onStartSuccess(settingsInEffect);
                 Log.i("BLE", "Advertising onStartSuccess");
+
+                // when the timeout expires, restart advertising
+                serviceHandler.postDelayed(()-> {
+                    bluetoothLeAdvertiser.stopAdvertising(this);
+                    serviceHandler.post(TracingService.this::advertise);
+                }, settingsInEffect.getTimeout());
             }
 
             @Override
             public void onStartFailure(int errorCode) {
                 super.onStartFailure(errorCode);
                 Log.e("BLE", "Advertising onStartFailure: " + errorCode);
+
+                // TODO
             }
         };
         bluetoothLeAdvertiser.startAdvertising(settings, data, advertisingCallback);
@@ -163,5 +153,13 @@ public class TracingService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         return START_STICKY;
+    }
+
+    /*
+    Don't do anything here, because the service doesn't have to communicate to other apps
+     */
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
     }
 }
