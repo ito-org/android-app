@@ -110,4 +110,9 @@
             android:text="@string/main_status_time" />
     </LinearLayout>
 
+    <fragment
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:name="com.example.infectiontracker.fragments.InfectionCheckFragment"
+        android:id="@+id/fragment_infection_check"/>
 </LinearLayout>
