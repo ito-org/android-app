@@ -1,5 +1,6 @@
 package com.example.infectiontracker.fragments;
 
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
 import android.os.Bundle;
@@ -8,12 +9,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.infectiontracker.R;
+import com.example.infectiontracker.database.InfectedUUID;
 import com.example.infectiontracker.viewmodel.InfectionCheckViewModel;
+
+import java.util.List;
 
 public class InfectionCheckFragment extends Fragment {
 
@@ -33,7 +38,17 @@ public class InfectionCheckFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mViewModel = ViewModelProviders.of(this).get(InfectionCheckViewModel.class);
-        // TODO: Use the ViewModel
+
+        mViewModel.getPossiblyInfectedEncounters().observe(getViewLifecycleOwner(), new Observer<List<InfectedUUID>>() {
+            @Override
+            public void onChanged(List<InfectedUUID> infectedUUIDS) {
+                for(InfectedUUID infectedUUID : infectedUUIDS) {
+                    Log.wtf("Test", infectedUUID.toString());
+                }
+            }
+        });
+
+        mViewModel.refreshInfectedUUIDs();
     }
 
 }

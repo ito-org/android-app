@@ -10,5 +10,5 @@ import retrofit2.http.GET;
 public interface InfectionchainWebservice {
 
     @GET("directus/items/infected_ids")
-    Call<List<InfectedUUID>> getInfectedUUIDs();
+    Call<InfectedUUIDResponse> getInfectedUUIDResponse();
 }
