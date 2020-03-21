@@ -24,11 +24,11 @@ import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.UUID;
 
 public class TracingService extends Service {
     private static final int UUID_VALID_TIME = 1000 * 60 * 60; //ms * sec * min = 1h
-    private static final ParcelUuid SERVICE_UUID = new ParcelUuid(UUID.fromString("8b225219-6c76-45b8-90fe-825f379f4762"));
     private static final String LOG_TAG = "TracingService";
 
     private Looper serviceLooper;
@@ -37,6 +37,7 @@ public class TracingService extends Service {
     private BluetoothLeScanner bluetoothLeScanner;
     private BluetoothLeAdvertiser bluetoothLeAdvertiser;
 
+    private ByteBuffer inputBuffer = ByteBuffer.wrap(new byte[/*Long.BYTES*/ 8 * 3]);
     private UUID currentUUID;
     private byte[] broadcastData;
 
@@ -46,15 +47,13 @@ public class TracingService extends Service {
         long time = System.currentTimeMillis();
 
         //TODO test
-        byte[] dataBytes = new byte[/*Long.BYTES*/ 8 * 3];
-        ByteBuffer buffer = ByteBuffer.wrap(dataBytes);
+        inputBuffer.putLong(0, currentUUID.getMostSignificantBits());
+        inputBuffer.putLong(4, currentUUID.getLeastSignificantBits());
+        inputBuffer.putLong(8, time);
 
-        buffer.putLong(currentUUID.getMostSignificantBits());
-        buffer.putLong(currentUUID.getLeastSignificantBits());
-        buffer.putLong(time);
         try {
-            MessageDigest digest = MessageDigest.getInstance("SHA256");
-            broadcastData = digest.digest(dataBytes);
+            MessageDigest digest = MessageDigest.getInstance("SHA-224");
+            broadcastData = digest.digest(inputBuffer.array());
         } catch (NoSuchAlgorithmException e) {
             Log.wtf(LOG_TAG, "Algorithm not found", e);
         }
@@ -96,16 +95,26 @@ public class TracingService extends Service {
         ScanCallback leScanCallback = new ScanCallback() {
             public void onScanResult(int callbackType, ScanResult result) {
                 ScanRecord record = result.getScanRecord();
-                byte[] receivedID = record.getServiceData(SERVICE_UUID);
-                if (receivedID == null) {
+                ByteBuffer transferredData = ByteBuffer.wrap(new byte[29]);
+                try {
+                    Map<ParcelUuid, byte[]> serviceData = record.getServiceData();
+                    ParcelUuid key = serviceData.keySet().iterator().next();
+                    UUID uuid = key.getUuid();
+                    transferredData.putLong(uuid.getMostSignificantBits());
+                    transferredData.putLong(uuid.getLeastSignificantBits());
+                    transferredData.put(serviceData.get(key));
+                } catch (Exception e) {
+                    Log.e(LOG_TAG, "unsupported");
                     return;
                 }
+
+                Log.e(LOG_TAG, Arrays.toString(transferredData.array()));
 
                 int deviceRSSI = result.getRssi();
 
                 //TODO store
                 Log.i(LOG_TAG, "onScanResult");
-                Log.d(LOG_TAG, Arrays.toString(receivedID));
+                //Log.d(LOG_TAG, Arrays.toString(receivedID));
                 Log.d(LOG_TAG, "" + deviceRSSI);
             }
         };
@@ -119,18 +128,27 @@ public class TracingService extends Service {
                 .setConnectable(false)
                 .build();
 
+        Log.e(LOG_TAG, Arrays.toString(this.broadcastData));
+        ByteBuffer broadcastData = ByteBuffer.allocate(29);
+        broadcastData.put((byte) 42);
+        broadcastData.put(this.broadcastData);
+        broadcastData.flip();
+        UUID serviceUUID = new UUID(broadcastData.getLong(), broadcastData.getLong());
+        ParcelUuid parcelUuid = new ParcelUuid(serviceUUID);
+        byte[] serviceData = new byte[13];
+        broadcastData.get(serviceData);
+
         AdvertiseData data = new AdvertiseData.Builder()
-                .setIncludeTxPowerLevel(true)
+                .setIncludeTxPowerLevel(false)
                 .setIncludeDeviceName(false)
-                .addServiceUuid(SERVICE_UUID)
-                .addServiceData(SERVICE_UUID, broadcastData)
+                .addServiceData(parcelUuid, serviceData)
                 .build();
 
         AdvertiseCallback advertisingCallback = new AdvertiseCallback() {
             @Override
             public void onStartSuccess(AdvertiseSettings settingsInEffect) {
                 super.onStartSuccess(settingsInEffect);
-                Log.e("BLE", "Advertising onStartSuccess");
+                Log.i("BLE", "Advertising onStartSuccess");
             }
 
             @Override
