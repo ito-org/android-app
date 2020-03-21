@@ -10,7 +10,7 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 
-@Database(entities = {Beacon.class, OwnUUID.class}, version = 1, exportSchema = false)
+@Database(entities = {Beacon.class, OwnUUID.class}, version = 2, exportSchema = false)
 @TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase {
     public abstract BeaconDao beaconDao();
@@ -25,7 +25,7 @@ public abstract class AppDatabase extends RoomDatabase {
         if(INSTANCE == null) {
             synchronized (AppDatabase.class) {
                 INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-                        AppDatabase.class, "infection_chain_database").build();
+                        AppDatabase.class, "infection_chain_database").fallbackToDestructiveMigration().build();
             }
         }
         return INSTANCE;

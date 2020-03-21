@@ -146,7 +146,7 @@ public class TracingService extends Service {
                         receivedHash,
                         currentUUID,
                         new Date(System.currentTimeMillis()),
-                        //TODO calculate Risk
+                        //TODO calculate Risk from encoded transmission power and received signal strength
                         0
                 ));
             }
