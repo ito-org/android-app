@@ -9,7 +9,7 @@ import android.content.pm.PackageManager;
 import androidx.core.content.ContextCompat;
 
 /*
-This BoardcastReceiver starts the tracing service when the system boots
+This BroadcastReceiver starts the tracing service when the system boots
  */
 public class StartupListener extends BroadcastReceiver {
     @Override
