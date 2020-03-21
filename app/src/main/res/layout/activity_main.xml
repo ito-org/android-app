@@ -38,4 +38,10 @@
                 android:text="@string/location_permission_grant_permission" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
+
+    <fragment
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:name="com.example.infectiontracker.fragments.InfectionCheckFragment"
+        android:id="@+id/fragment_infection_check"/>
 </LinearLayout>

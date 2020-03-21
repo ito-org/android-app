@@ -11,7 +11,7 @@ import androidx.room.PrimaryKey;
 public class Beacon {
 
     @PrimaryKey
-    public int id;
+    public int id = 0;
     public byte[] receivedHash;
     public UUID ownUUID;
     public Date timestamp;
@@ -20,10 +20,10 @@ public class Beacon {
     public Beacon(byte[] receivedHash,
                   UUID ownUUID,
                   Date timestamp,
-                  int risk) {
+                  int distance) {
         this.receivedHash = receivedHash;
         this.ownUUID = ownUUID;
         this.timestamp = timestamp;
-        this.distance = risk;
+        this.distance = distance;
     }
 }

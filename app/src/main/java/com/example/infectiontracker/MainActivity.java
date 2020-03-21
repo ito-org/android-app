@@ -14,7 +14,7 @@ public class MainActivity extends AppCompatActivity {
 
     private final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
 
-    private final boolean showContactLogger = true;
+    private final boolean showContactLogger = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
