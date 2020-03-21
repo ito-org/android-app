@@ -1,5 +1,10 @@
 package com.example.infectiontracker;
 
+import android.annotation.TargetApi;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
@@ -13,23 +18,34 @@ import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
 
+import com.example.infectiontracker.database.Beacon;
+import com.example.infectiontracker.database.OwnUUID;
+import com.example.infectiontracker.repository.BroadcastRepository;
+
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.UUID;
+
+import androidx.core.app.NotificationCompat;
 
 public class TracingService extends Service {
     private static final int UUID_VALID_TIME = 1000 * 60 * 60; //ms * sec * min = 1h
     private static final String LOG_TAG = "TracingService";
     private static final int BLUETOOTH_SIG = 2220;
     private static final int BROADCAST_LENGTH = 27;
+    private static final String DEFAULT_NOTIFICATION_CHANNEL = "ContactTracing";
+    private static final int NOTIFICATION_ID = 1;
 
     public static final int STATUS_DISABLED = 0;
     public static final int STATUS_ACTIVE = 1;
@@ -45,16 +61,17 @@ public class TracingService extends Service {
     private UUID currentUUID;
     private byte[] broadcastData;
 
+    private BroadcastRepository mBroadcastRepository;
+
     private Runnable regenerateUUID = () -> {
-        //TODO store in DB
         currentUUID = UUID.randomUUID();
         long time = System.currentTimeMillis();
+        mBroadcastRepository.insertOwnUUID(new OwnUUID(currentUUID, new Date(time)));
 
-        // Put the UUID and the current time together into one buffer and
-        ByteBuffer inputBuffer = ByteBuffer.wrap(new byte[/*Long.BYTES*/ 8 * 3]);
+        // Convert the UUID to its SHA-256 hash
+        ByteBuffer inputBuffer = ByteBuffer.wrap(new byte[/*Long.BYTES*/ 8 * 2]);
         inputBuffer.putLong(0, currentUUID.getMostSignificantBits());
         inputBuffer.putLong(4, currentUUID.getLeastSignificantBits());
-        inputBuffer.putLong(8, time);
 
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -70,6 +87,7 @@ public class TracingService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        mBroadcastRepository = new BroadcastRepository(this.getApplication());
         HandlerThread thread = new HandlerThread("TrackerHandler", Thread.NORM_PRIORITY);
         thread.start();
 
@@ -122,9 +140,15 @@ public class TracingService extends Service {
 
                 int deviceRSSI = result.getRssi();
 
-                //TODO store
                 Log.i(LOG_TAG, "onScanResult");
                 Log.d(LOG_TAG, Arrays.toString(receivedHash) + ":" + deviceRSSI);
+                mBroadcastRepository.insertBeacon(new Beacon(
+                        receivedHash,
+                        currentUUID,
+                        new Date(System.currentTimeMillis()),
+                        //TODO calculate Risk
+                        0
+                ));
             }
         };
         bluetoothLeScanner.startScan(leScanCallback);
@@ -132,7 +156,7 @@ public class TracingService extends Service {
 
     private void advertise() {
         AdvertiseSettings settings = new AdvertiseSettings.Builder()
-                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
+                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_POWER)
                 .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
                 .setConnectable(false)
                 .setTimeout(180000)
@@ -169,8 +193,42 @@ public class TracingService extends Service {
         bluetoothLeAdvertiser.startAdvertising(settings, data, advertisingCallback);
     }
 
+    @TargetApi(26)
+    private void createChannel(NotificationManager notificationManager) {
+        int importance = NotificationManager.IMPORTANCE_DEFAULT;
+
+        NotificationChannel mChannel = new NotificationChannel(DEFAULT_NOTIFICATION_CHANNEL, DEFAULT_NOTIFICATION_CHANNEL, importance);
+        mChannel.setDescription(getText(R.string.notification_channel).toString());
+        mChannel.enableLights(true);
+        mChannel.setLightColor(Color.BLUE);
+        notificationManager.createNotificationChannel(mChannel);
+    }
+
+    private void runAsForgroundService() {
+        NotificationManager notificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            createChannel(notificationManager);
+
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
+                notificationIntent, 0);
+
+        Notification notification = new NotificationCompat.Builder(this,
+                DEFAULT_NOTIFICATION_CHANNEL)
+                .setContentTitle(getText(R.string.notification_title))
+                .setContentText(getText(R.string.notification_message))
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentIntent(pendingIntent)
+                .setPriority(NotificationManager.IMPORTANCE_MAX)
+                .build();
+
+        startForeground(NOTIFICATION_ID, notification);
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        runAsForgroundService();
         return START_STICKY;
     }
 
