@@ -53,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
                     startTracingService();
                 } else {
                     // Don't start the discovery service
-                    //TODO: Hint in UI to request permissions again
                     findViewById(R.id.card_permission_required).setVisibility(View.VISIBLE);
                     findViewById(R.id.ask_permission).setOnClickListener(view -> checkPermissions());
                 }
