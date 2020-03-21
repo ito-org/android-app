@@ -18,4 +18,10 @@
     <string name="notification_title">COVID-19 contact tracing</string>
     <string name="notification_message">COVID-19 contact tracing is active</string>
     <string name="notification_channel">Notifications about COVID-19 contact tracing activity</string>
+
+    <string name="qr_contact_title">Add contacts via QR-code</string>
+    <string name="qr_added_contact">Added contact</string>
+    <string name="add_qr_code">Add contact via QR-code</string>
+    <string name="qr_code_error">Error while scanning qr-code</string>
+    <string name="qr_code_not_supported">This QR-code does not have a supported value</string>
 </resources>

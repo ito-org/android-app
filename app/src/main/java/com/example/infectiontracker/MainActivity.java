@@ -1,10 +1,13 @@
 package com.example.infectiontracker;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
+
+import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -13,6 +16,7 @@ import androidx.core.content.ContextCompat;
 public class MainActivity extends AppCompatActivity {
 
     private final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private final int MY_QR_CODE_SCAN = 2;
 
     private final boolean showContactLogger = true;
 
@@ -41,6 +45,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch(requestCode) {
+            case MY_QR_CODE_SCAN: {
+                if(resultCode == Activity.RESULT_OK) {
+                    Snackbar.make(findViewById(R.id.myCoordinatorLayout),
+                            R.string.qr_added_contact, Snackbar.LENGTH_SHORT).show();
+                }
+            } break;
+        }
+    }
+
     private void startTracingService() {
         Intent intent = new Intent(this, TracingService.class);
         startService(intent);
@@ -65,6 +83,10 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
         }
+    }
+
+    public void onAddQrCode(View v) {
+        startActivityForResult(new Intent(this, QrContact.class), MY_QR_CODE_SCAN);
     }
 
 }

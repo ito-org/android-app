@@ -49,6 +49,11 @@
             android:label="@string/contact_logger_title"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
+
+        <activity android:name=".QrContact"
+            android:label="@string/qr_contact_title"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
     </application>
 
 </manifest>
