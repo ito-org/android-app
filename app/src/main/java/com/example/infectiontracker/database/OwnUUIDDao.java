@@ -9,9 +9,9 @@ import androidx.room.Insert;
 import androidx.room.Query;
 
 @Dao
-public interface BeaconDao {
-    @Query("SELECT * FROM beacon")
-    LiveData<List<Beacon>> getAll();
+public interface OwnUUIDDao {
+    @Query("SELECT * FROM ownuuid")
+    LiveData<List<OwnUUID>> getAll();
 
     /*@Query("SELECT * FROM user WHERE uid IN (:userIds)")
     List<User> loadAllByIds(int[] userIds);
@@ -21,8 +21,8 @@ public interface BeaconDao {
     User findByName(String first, String last);*/
 
     @Insert
-    void insertAll(Beacon... beacons);
+    void insertAll(OwnUUID... uuids);
 
     @Delete
-    void delete(Beacon beacon);
+    void delete(OwnUUID ownUUID);
 }
