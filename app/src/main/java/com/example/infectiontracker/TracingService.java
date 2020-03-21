@@ -110,7 +110,6 @@ public class TracingService extends Service {
 
                 // if there is no record, discard this packet
                 if (record == null) {
-                    ContactLogger.addContact("Bluetooth problem");
                     return;
                 }
 
@@ -122,8 +121,6 @@ public class TracingService extends Service {
                 }
 
                 int deviceRSSI = result.getRssi();
-
-                ContactLogger.addContact("New contact: "+ deviceRSSI);
 
                 //TODO store
                 Log.i(LOG_TAG, "onScanResult");

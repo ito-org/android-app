@@ -14,18 +14,12 @@ public class MainActivity extends AppCompatActivity {
 
     private final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
 
-    private final boolean showContactLogger = true;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         checkPermissions();
-
-        if(showContactLogger) {
-            startActivity(new Intent(this, ContactLogger.class));
-        }
     }
 
     private void checkPermissions() {
