@@ -10,11 +10,16 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 
-@Database(entities = {Beacon.class, OwnUUID.class}, version = 2, exportSchema = false)
+@Database(entities = {
+        Beacon.class,
+        OwnUUID.class,
+        InfectedUUID.class},
+        version = 2, exportSchema = false)
 @TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase {
     public abstract BeaconDao beaconDao();
     public abstract OwnUUIDDao ownUUIDDao();
+    public abstract InfectedUUIDDao infectedUUIDDao();
 
     private static volatile AppDatabase INSTANCE;
     private static final int NUMBER_OF_THREADS = 4;
