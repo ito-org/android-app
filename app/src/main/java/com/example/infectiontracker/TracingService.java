@@ -68,11 +68,10 @@ public class TracingService extends Service {
         long time = System.currentTimeMillis();
         mBroadcastRepository.insertOwnUUID(new OwnUUID(currentUUID, new Date(time)));
 
-        // Put the UUID and the current time together into one buffer and
-        ByteBuffer inputBuffer = ByteBuffer.wrap(new byte[/*Long.BYTES*/ 8 * 3]);
+        // Convert the UUID to its SHA-256 hash
+        ByteBuffer inputBuffer = ByteBuffer.wrap(new byte[/*Long.BYTES*/ 8 * 2]);
         inputBuffer.putLong(0, currentUUID.getMostSignificantBits());
         inputBuffer.putLong(4, currentUUID.getLeastSignificantBits());
-        inputBuffer.putLong(8, time);
 
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -157,7 +156,7 @@ public class TracingService extends Service {
 
     private void advertise() {
         AdvertiseSettings settings = new AdvertiseSettings.Builder()
-                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
+                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_POWER)
                 .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
                 .setConnectable(false)
                 .setTimeout(180000)
