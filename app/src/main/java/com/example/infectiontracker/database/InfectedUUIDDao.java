@@ -21,6 +21,10 @@ public interface InfectedUUIDDao {
             "last_name LIKE :last LIMIT 1")
     User findByName(String first, String last);*/
 
+    @Query("SELECT * FROM infecteduuid JOIN beacon ON" +
+            " infecteduuid.hashedId = beacon.receivedDoubleHash")
+    LiveData<List<InfectedUUID>> getPossiblyInfectedEncounters();
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAll(InfectedUUID... uuids);
 

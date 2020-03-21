@@ -37,9 +37,7 @@ public class InfectedUUIDRepository {
     }
 
     public LiveData<List<InfectedUUID>> getPossiblyInfectedEncounters() {
-        // TODO: do comparison between InfectedUUID and Beacons
-        // dummy return
-        return infectedUUIDDao.getAll();
+        return infectedUUIDDao.getPossiblyInfectedEncounters();
     }
 
     public void refreshInfectedUUIDs() {

@@ -21,4 +21,18 @@ public class InfectedUUID {
     public byte[] hashedId; // this is actually double hashed
     @SerializedName("icd_code")
     public String icdCode;
+
+    public InfectedUUID(
+            int id,
+            Date createdOn,
+            int distrustLevel,
+            byte[] hashedId,
+            String icdCode
+    ) {
+        this.id = id;
+        this.createdOn = createdOn;
+        this.distrustLevel = distrustLevel;
+        this.hashedId = hashedId;
+        this.icdCode = icdCode;
+    }
 }
