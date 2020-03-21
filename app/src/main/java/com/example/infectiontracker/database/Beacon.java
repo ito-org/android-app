@@ -11,7 +11,7 @@ import androidx.room.PrimaryKey;
 public class Beacon {
 
     @PrimaryKey
-    @NonNull
+    public int id;
     public byte[] receivedHash;
     public UUID ownUUID;
     public Date timestamp;
