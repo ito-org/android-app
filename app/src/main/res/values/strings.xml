@@ -18,4 +18,7 @@
     <string name="notification_title">COVID-19 contact tracing</string>
     <string name="notification_message">COVID-19 contact tracing is active</string>
     <string name="notification_channel">Notifications about COVID-19 contact tracing activity</string>
+
+    <string name="main_status_ok">We have no data that indicates you had contact with an infected</string>
+    <string name="main_last_check">Last check:</string>
 </resources>
