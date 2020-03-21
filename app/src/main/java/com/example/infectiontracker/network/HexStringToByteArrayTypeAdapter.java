@@ -17,7 +17,7 @@ public class HexStringToByteArrayTypeAdapter implements JsonSerializer<byte[]>, 
     @Override
     public byte[] deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         try {
-            return Hex.decodeHex(json.getAsString());
+            return Hex.decodeHex(json.getAsString().toCharArray());
         } catch (DecoderException e) {
             throw new JsonParseException(e.getMessage());
         }

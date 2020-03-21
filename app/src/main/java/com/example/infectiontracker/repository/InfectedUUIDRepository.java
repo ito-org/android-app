@@ -46,7 +46,9 @@ public class InfectedUUIDRepository {
         webservice.getInfectedUUIDResponse().enqueue(new Callback<InfectedUUIDResponse>() {
             @Override
             public void onResponse(Call<InfectedUUIDResponse> call, Response<InfectedUUIDResponse> response) {
-                infectedUUIDDao.insertAll(response.body().data.toArray(new InfectedUUID[response.body().data.size()]));
+                AppDatabase.databaseWriteExecutor.execute(() -> {
+                    infectedUUIDDao.insertAll(response.body().data.toArray(new InfectedUUID[response.body().data.size()]));
+                });
             }
 
             @Override

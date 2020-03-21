@@ -9,6 +9,6 @@ import retrofit2.http.GET;
 
 public interface InfectionchainWebservice {
 
-    @GET("directus/items/infected_ids")
+    @GET("strict/items/infected_ids")
     Call<InfectedUUIDResponse> getInfectedUUIDResponse();
 }
