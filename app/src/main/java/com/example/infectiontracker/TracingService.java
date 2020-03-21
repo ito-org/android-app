@@ -9,6 +9,7 @@ import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.content.Intent;
@@ -22,11 +23,12 @@ import android.util.Log;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.UUID;
 
 public class TracingService extends Service {
     private static final int UUID_VALID_TIME = 1000 * 60 * 60; //ms * sec * min = 1h
-    private static final UUID SERVICE_UUID = UUID.fromString("8b225219-6c76-45b8-90fe-825f379f4762");
+    private static final ParcelUuid SERVICE_UUID = new ParcelUuid(UUID.fromString("8b225219-6c76-45b8-90fe-825f379f4762"));
     private static final String LOG_TAG = "TracingService";
 
     private Looper serviceLooper;
@@ -51,7 +53,7 @@ public class TracingService extends Service {
         buffer.putLong(currentUUID.getLeastSignificantBits());
         buffer.putLong(time);
         try {
-            MessageDigest digest = MessageDigest.getInstance("SHA1");
+            MessageDigest digest = MessageDigest.getInstance("SHA256");
             broadcastData = digest.digest(dataBytes);
         } catch (NoSuchAlgorithmException e) {
             Log.wtf(LOG_TAG, "Algorithm not found", e);
@@ -85,15 +87,26 @@ public class TracingService extends Service {
         bluetoothLeAdvertiser = bluetoothAdapter.getBluetoothLeAdvertiser();
         bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
 
+        regenerateUUID.run();
+        advertise();
+        scan();
+    }
+
+    private void scan() {
         ScanCallback leScanCallback = new ScanCallback() {
             public void onScanResult(int callbackType, ScanResult result) {
-                String deviceAddress = result.getDevice().getAddress();
-                String deviceRSSI = Integer.toString(result.getRssi());
+                ScanRecord record = result.getScanRecord();
+                byte[] receivedID = record.getServiceData(SERVICE_UUID);
+                if (receivedID == null) {
+                    return;
+                }
 
-                //TODO
+                int deviceRSSI = result.getRssi();
+
+                //TODO store
                 Log.i(LOG_TAG, "onScanResult");
-
-                final StringBuilder builder = new StringBuilder();
+                Log.d(LOG_TAG, Arrays.toString(receivedID));
+                Log.d(LOG_TAG, "" + deviceRSSI);
             }
         };
         bluetoothLeScanner.startScan(leScanCallback);
@@ -105,12 +118,12 @@ public class TracingService extends Service {
                 .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_LOW)
                 .setConnectable(false)
                 .build();
-        ParcelUuid pUuid = new ParcelUuid(SERVICE_UUID);
 
         AdvertiseData data = new AdvertiseData.Builder()
+                .setIncludeTxPowerLevel(true)
                 .setIncludeDeviceName(false)
-                .addServiceUuid(pUuid)
-                .addServiceData(pUuid, broadcastData)
+                .addServiceUuid(SERVICE_UUID)
+                .addServiceData(SERVICE_UUID, broadcastData)
                 .build();
 
         AdvertiseCallback advertisingCallback = new AdvertiseCallback() {
