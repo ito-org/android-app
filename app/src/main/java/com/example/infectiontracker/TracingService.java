@@ -43,7 +43,7 @@ public class TracingService extends Service {
     private static final int UUID_VALID_TIME = 1000 * 60 * 60; //ms * sec * min = 1h
     private static final String LOG_TAG = "TracingService";
     private static final int BLUETOOTH_SIG = 2220;
-    private static final int BROADCAST_LENGTH = 27;
+    private static final int BROADCAST_LENGTH = 26;
     private static final String DEFAULT_NOTIFICATION_CHANNEL = "ContactTracing";
     private static final int NOTIFICATION_ID = 1;
 
@@ -76,13 +76,18 @@ public class TracingService extends Service {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             broadcastData = digest.digest(inputBuffer.array());
-            broadcastData = Arrays.copyOf(broadcastData, BROADCAST_LENGTH);
+            broadcastData = Arrays.copyOf(broadcastData, BROADCAST_LENGTH + 1);
+            broadcastData[BROADCAST_LENGTH] = getTransmitPower();
         } catch (NoSuchAlgorithmException e) {
             Log.wtf(LOG_TAG, "Algorithm not found", e);
         }
 
         serviceHandler.postDelayed(this.regenerateUUID, UUID_VALID_TIME);
     };
+
+    private byte getTransmitPower() {
+        return (byte) 3;
+    }
 
     @Override
     public void onCreate() {
@@ -138,6 +143,9 @@ public class TracingService extends Service {
                     return;
                 }
 
+                byte transmitPower = receivedHash[BROADCAST_LENGTH];
+                receivedHash = Arrays.copyOf(receivedHash, BROADCAST_LENGTH);
+
                 int deviceRSSI = result.getRssi();
 
                 Log.i(LOG_TAG, "onScanResult");
@@ -146,7 +154,7 @@ public class TracingService extends Service {
                         receivedHash,
                         currentUUID,
                         new Date(System.currentTimeMillis()),
-                        //TODO calculate Risk from encoded transmission power and received signal strength
+                        //TODO calculate distance from encoded transmission power and received signal strength
                         0
                 ));
             }
