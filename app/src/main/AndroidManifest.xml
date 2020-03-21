@@ -49,6 +49,12 @@
             android:label="@string/contact_logger_title"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
+
+        <activity
+            android:name=".InfectedInfo"
+            android:label="@string/infected_info_title"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
     </application>
 
 </manifest>

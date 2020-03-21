@@ -14,6 +14,12 @@
     <string name="location_permission_grant_permission">Ask again</string>
 
     <string name="contact_logger_title">Log Contacts</string>
+
+    <string name="infected_info_title">Infected Info</string>
+    <string name="infected_info">You have been in potential contact with an infected. Please get yourself tested. More details:</string>
+    <string name="infected_info_contact_time">Approximate contact time:</string>
+    <string name="infected_info_contact_duration">Approximate contact duration:</string>
+    <string name="infected_info_link"><![CDATA[<a href="https://www.116117.de/de/coronavirus.php">Information about getting tested</a>]]></string>
     
     <string name="notification_title">COVID-19 contact tracing</string>
     <string name="notification_message">COVID-19 contact tracing is active</string>
