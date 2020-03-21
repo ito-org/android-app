@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -18,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //checkPermissions();
+        checkPermissions();
     }
 
     private void checkPermissions() {
@@ -39,12 +40,20 @@ public class MainActivity extends AppCompatActivity {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    findViewById(R.id.card_permission_required).setVisibility(View.GONE);
                     // Start background service
                     Intent intent = new Intent(this, TracingService.class);
                     startService(intent);
                 } else {
                     // Don't start the discovery service
                     //TODO: Hint in UI to request permissions again
+                    findViewById(R.id.card_permission_required).setVisibility(View.VISIBLE);
+                    findViewById(R.id.ask_permission).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            checkPermissions();
+                        }
+                    });
                 }
                 return;
             }

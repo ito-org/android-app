@@ -10,6 +10,6 @@
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
 
-    <string name="location_permission_required">This app needs to know your location permission in order to use bluetooth.</string>
+    <string name="location_permission_required">This app needs to be granted the location permission in order to use bluetooth.</string>
     <string name="location_permission_grant_permission">Ask again</string>
 </resources>
