@@ -19,6 +19,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
 
+import com.example.infectiontracker.database.Beacon;
 import com.example.infectiontracker.database.OwnUUID;
 import com.example.infectiontracker.repository.BroadcastRepository;
 
@@ -49,7 +50,7 @@ public class TracingService extends Service {
     private Runnable regenerateUUID = () -> {
         currentUUID = UUID.randomUUID();
         long time = System.currentTimeMillis();
-        mBroadcastRepository.insert(new OwnUUID(currentUUID, new Date(time)));
+        mBroadcastRepository.insertOwnUUID(new OwnUUID(currentUUID, new Date(time)));
 
         // Put the UUID and the current time together into one buffer and
         ByteBuffer inputBuffer = ByteBuffer.wrap(new byte[/*Long.BYTES*/ 8 * 3]);
@@ -110,9 +111,15 @@ public class TracingService extends Service {
 
                 int deviceRSSI = result.getRssi();
 
-                //TODO store
                 Log.i(LOG_TAG, "onScanResult");
                 Log.d(LOG_TAG, Arrays.toString(receivedHash) + ":" + deviceRSSI);
+                mBroadcastRepository.insertBeacon(new Beacon(
+                        receivedHash,
+                        currentUUID,
+                        new Date(System.currentTimeMillis()),
+                        //TODO calculate Risk
+                        0
+                ));
             }
         };
         bluetoothLeScanner.startScan(leScanCallback);

@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 
 @Dao
@@ -20,7 +21,7 @@ public interface BeaconDao {
             "last_name LIKE :last LIMIT 1")
     User findByName(String first, String last);*/
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAll(Beacon... beacons);
 
     @Delete

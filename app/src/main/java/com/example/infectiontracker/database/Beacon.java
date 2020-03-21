@@ -16,4 +16,14 @@ public class Beacon {
     public UUID ownUUID;
     public Date timestamp;
     public int risk;
+
+    public Beacon(byte[] receivedHash,
+                  UUID ownUUID,
+                  Date timestamp,
+                  int risk) {
+        this.receivedHash = receivedHash;
+        this.ownUUID = ownUUID;
+        this.timestamp = timestamp;
+        this.risk = risk;
+    }
 }
