@@ -37,16 +37,23 @@ public class InfectedUUIDRepository {
     }
 
     public LiveData<List<InfectedUUID>> getPossiblyInfectedEncounters() {
-        // TODO: do comparison between InfectedUUID and Beacons
-        // dummy return
-        return infectedUUIDDao.getAll();
+        return infectedUUIDDao.getPossiblyInfectedEncounters();
     }
 
     public void refreshInfectedUUIDs() {
         webservice.getInfectedUUIDResponse().enqueue(new Callback<InfectedUUIDResponse>() {
             @Override
             public void onResponse(Call<InfectedUUIDResponse> call, Response<InfectedUUIDResponse> response) {
-                infectedUUIDDao.insertAll(response.body().data.toArray(new InfectedUUID[response.body().data.size()]));
+                AppDatabase.databaseWriteExecutor.execute(() -> {
+                    if(response.body() != null) {
+                        infectedUUIDDao.insertAll(response.body().data.toArray(new InfectedUUID[response.body().data.size()]));
+                    }
+                    else {
+                        // TODO: error handling!
+                        Log.e(LOG_TAG, "Invalid response from api");
+                    }
+
+                });
             }
 
             @Override

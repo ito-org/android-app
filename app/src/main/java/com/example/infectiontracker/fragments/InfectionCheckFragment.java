@@ -43,12 +43,12 @@ public class InfectionCheckFragment extends Fragment {
             @Override
             public void onChanged(List<InfectedUUID> infectedUUIDS) {
                 for(InfectedUUID infectedUUID : infectedUUIDS) {
-                    Log.wtf("Test", infectedUUID.toString());
+                    Log.wtf("Test", infectedUUID.id + " " + infectedUUID.createdOn.toString() + " " +
+                            infectedUUID.distrustLevel + " " + infectedUUID.hashedId.toString() + infectedUUID.icdCode);
                 }
             }
         });
 
         mViewModel.refreshInfectedUUIDs();
     }
-
 }
