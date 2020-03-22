@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.infectiontracker">
-    <!-- TODO: change package id!! e.g. online.infectionchain.bandemic -->
+    package="app.bandemic">
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -22,7 +21,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <receiver android:name=".service.StartupListener">
+        <receiver android:name="app.bandemic.strict.service.StartupListener">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
@@ -30,12 +29,12 @@
         </receiver>
 
         <service
-            android:name=".service.TracingService"
+            android:name="app.bandemic.strict.service.TracingService"
             android:enabled="true"
             android:exported="false" />
 
         <activity
-            android:name=".MainActivity"
+            android:name="app.bandemic.ui.MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -46,13 +45,13 @@
         </activity>
 
         <activity
-            android:name=".ContactLogger"
+            android:name="app.bandemic.ui.ContactLogger"
             android:label="@string/contact_logger_title"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
 
         <activity
-            android:name=".DataProtectionInfo"
+            android:name="app.bandemic.ui.DataProtectionInfo"
             android:label="@string/dataprotection_title"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>

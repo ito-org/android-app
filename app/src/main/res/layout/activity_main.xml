@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".MainActivity">
+    tools:context="app.bandemic.ui.MainActivity">
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/main_swipe_refresh_layout"
@@ -53,13 +53,13 @@
             <androidx.fragment.app.FragmentContainerView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:name="com.example.infectiontracker.fragments.InfectionCheckFragment"
+                android:name="app.bandemic.fragments.InfectionCheckFragment"
                 android:id="@+id/fragment_infection_check"/>
 
             <androidx.fragment.app.FragmentContainerView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:name="com.example.infectiontracker.fragments.EnvironmentLoggerFragment"
+                android:name="app.bandemic.fragments.EnvironmentLoggerFragment"
                 android:id="@+id/fragment_environment_logger"/>
         </LinearLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
