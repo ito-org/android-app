@@ -6,6 +6,7 @@ import android.util.Log;
 import com.example.infectiontracker.database.AppDatabase;
 import com.example.infectiontracker.database.InfectedUUID;
 import com.example.infectiontracker.database.InfectedUUIDDao;
+import com.example.infectiontracker.database.Infection;
 import com.example.infectiontracker.network.InfectedUUIDResponse;
 import com.example.infectiontracker.network.InfectionchainWebservice;
 import com.example.infectiontracker.network.RetrofitClient;
@@ -36,10 +37,8 @@ public class InfectedUUIDRepository {
         return infectedUUIDDao.getAll();
     }
 
-    public LiveData<List<InfectedUUID>> getPossiblyInfectedEncounters() {
-        //return infectedUUIDDao.getPossiblyInfectedEncounters();
-        //Demo:
-        return infectedUUIDDao.getAll();
+    public LiveData<List<Infection>> getPossiblyInfectedEncounters() {
+        return infectedUUIDDao.getPossiblyInfectedEncounters();
     }
 
     public void refreshInfectedUUIDs() {
