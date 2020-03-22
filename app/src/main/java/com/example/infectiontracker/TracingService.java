@@ -84,7 +84,7 @@ public class TracingService extends Service {
     };
 
     private byte getTransmitPower() {
-        return (byte) 3;
+        return (byte) -68;
     }
 
     @Override
@@ -138,7 +138,7 @@ public class TracingService extends Service {
 
                 double distance = Math.pow(10d, ((double) txPower - rssi) / (10 * 2));
 
-                Log.d(LOG_TAG, Arrays.toString(receivedHash) + ":" + rssi);
+                Log.d(LOG_TAG, Arrays.toString(receivedHash) + ":" + distance);
                 mBroadcastRepository.insertBeacon(new Beacon(
                         receivedHash,
                         currentUUID,
