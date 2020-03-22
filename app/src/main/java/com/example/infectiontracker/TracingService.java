@@ -43,8 +43,8 @@ public class TracingService extends Service {
     private static final int UUID_VALID_TIME = 1000 * 60 * 60; //ms * sec * min = 1h
     private static final String LOG_TAG = "TracingService";
     private static final int BLUETOOTH_SIG = 2220;
-    private static final int BROADCAST_LENGTH = 27;
-    private static final String DEFAULT_NOTIFICATION_CHANNEL = "ContactTracing";
+    private static final int BROADCAST_LENGTH = 26;
+    private static final String DEFAULT_NOTIFICATION_CHANNEL = "ContactTracing3";
     private static final int NOTIFICATION_ID = 1;
 
     public static final int STATUS_DISABLED = 0;
@@ -68,22 +68,26 @@ public class TracingService extends Service {
         long time = System.currentTimeMillis();
         mBroadcastRepository.insertOwnUUID(new OwnUUID(currentUUID, new Date(time)));
 
-        // Put the UUID and the current time together into one buffer and
-        ByteBuffer inputBuffer = ByteBuffer.wrap(new byte[/*Long.BYTES*/ 8 * 3]);
+        // Convert the UUID to its SHA-256 hash
+        ByteBuffer inputBuffer = ByteBuffer.wrap(new byte[/*Long.BYTES*/ 8 * 2]);
         inputBuffer.putLong(0, currentUUID.getMostSignificantBits());
         inputBuffer.putLong(4, currentUUID.getLeastSignificantBits());
-        inputBuffer.putLong(8, time);
 
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             broadcastData = digest.digest(inputBuffer.array());
-            broadcastData = Arrays.copyOf(broadcastData, BROADCAST_LENGTH);
+            broadcastData = Arrays.copyOf(broadcastData, BROADCAST_LENGTH + 1);
+            broadcastData[BROADCAST_LENGTH] = getTransmitPower();
         } catch (NoSuchAlgorithmException e) {
             Log.wtf(LOG_TAG, "Algorithm not found", e);
         }
 
         serviceHandler.postDelayed(this.regenerateUUID, UUID_VALID_TIME);
     };
+
+    private byte getTransmitPower() {
+        return (byte) 3;
+    }
 
     @Override
     public void onCreate() {
@@ -139,6 +143,9 @@ public class TracingService extends Service {
                     return;
                 }
 
+                byte transmitPower = receivedHash[BROADCAST_LENGTH];
+                receivedHash = Arrays.copyOf(receivedHash, BROADCAST_LENGTH);
+
                 int deviceRSSI = result.getRssi();
 
                 Log.i(LOG_TAG, "onScanResult");
@@ -147,7 +154,7 @@ public class TracingService extends Service {
                         receivedHash,
                         currentUUID,
                         new Date(System.currentTimeMillis()),
-                        //TODO calculate Risk
+                        //TODO calculate distance from encoded transmission power and received signal strength
                         0
                 ));
             }
@@ -157,7 +164,7 @@ public class TracingService extends Service {
 
     private void advertise() {
         AdvertiseSettings settings = new AdvertiseSettings.Builder()
-                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
+                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_POWER)
                 .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
                 .setConnectable(false)
                 .setTimeout(180000)
@@ -202,6 +209,7 @@ public class TracingService extends Service {
         mChannel.setDescription(getText(R.string.notification_channel).toString());
         mChannel.enableLights(true);
         mChannel.setLightColor(Color.BLUE);
+        mChannel.setImportance(NotificationManager.IMPORTANCE_LOW);
         notificationManager.createNotificationChannel(mChannel);
     }
 
@@ -221,7 +229,8 @@ public class TracingService extends Service {
                 .setContentText(getText(R.string.notification_message))
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentIntent(pendingIntent)
-                .setPriority(NotificationManager.IMPORTANCE_MAX)
+                .setPriority(NotificationManager.IMPORTANCE_LOW)
+                .setVibrate(null)
                 .build();
 
         startForeground(NOTIFICATION_ID, notification);
