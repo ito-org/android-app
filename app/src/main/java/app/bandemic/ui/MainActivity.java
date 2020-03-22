@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
 
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         if(!sharedPref.getBoolean(PREFERENCE_DATA_OK, false)) {
-            startActivity(new Intent(this, DataProtectionInfo.class));
+            startActivity(new Intent(this, Instructions.class));
         }
     }
 
