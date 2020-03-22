@@ -14,7 +14,7 @@
     <string name="location_permission_grant_permission">Ask again</string>
 
     <string name="contact_logger_title">Log Contacts</string>
-    
+
     <string name="notification_title">COVID-19 contact tracing</string>
     <string name="notification_message">COVID-19 contact tracing is active</string>
     <string name="notification_channel">Notifications about COVID-19 contact tracing activity</string>
@@ -22,10 +22,11 @@
     <string name="encountered_infections">Encountered infections</string>
     <string name="verified">verified</string>
     <string name="unverified">unverified</string>
+    <string name="detected_devices">Detected devices</string>
 
     <string name="main_status_ok">We have currently no data that indicates you had contact with an infected person</string>
 
-    
+
     <string name="dataprotection_title">Data protection information</string>
     <string name="dataprotection_ok">OK</string>
     <string name="dataprotection_content">
@@ -44,4 +45,5 @@
         <a href="http://infectionchain.online/dataprotection">More information</a>
         ]]>
     </string>
+    <string name="main_no_devices">There are currently no active devices in close proximity</string>
 </resources>
