@@ -3,6 +3,7 @@ package app.bandemic.fragments;
 import androidx.lifecycle.ViewModelProviders;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -15,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import androidx.cardview.widget.CardView;
 
 import app.bandemic.R;
 import app.bandemic.ui.InfectedUUIDsAdapter;
@@ -30,6 +32,7 @@ public class InfectionCheckFragment extends Fragment {
     private InfectedUUIDsAdapter mAdapter;
     private RecyclerView.LayoutManager layoutManager;
     private LinearLayout noInfectionInformation;
+    private CardView cardView;
 
     public static InfectionCheckFragment newInstance() {
         return new InfectionCheckFragment();
@@ -51,6 +54,7 @@ public class InfectionCheckFragment extends Fragment {
         recyclerView.setLayoutManager(layoutManager);
         mAdapter = new InfectedUUIDsAdapter();
         recyclerView.setAdapter(mAdapter);
+        cardView = view.findViewById(R.id.infectionCheckFragment);
     }
 
     @Override
@@ -72,9 +76,13 @@ public class InfectionCheckFragment extends Fragment {
                 mAdapter.setInfectedUUIDs(infectedUUIDS);
                 noInfectionInformation.setVisibility(View.GONE);
                 recyclerView.setVisibility(View.VISIBLE);
+
+                cardView.setBackgroundColor(getResources().getColor(R.color.colorDanger));
             }
             else {
                 noInfectionInformation.setVisibility(View.VISIBLE);
+                recyclerView.setVisibility(View.GONE);
+                cardView.setBackgroundColor(getResources().getColor(R.color.colorNoDanger));
             }
         });
 
