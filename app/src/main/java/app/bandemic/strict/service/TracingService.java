@@ -46,17 +46,18 @@ public class TracingService extends Service {
     private Handler serviceHandler;
     private BleScanner bleScanner;
     private BleAdvertiser bleAdvertiser;
+    private BeaconCache beaconCache;
 
     private UUID currentUUID;
 
-    private BroadcastRepository mBroadcastRepository;
+    private BroadcastRepository broadcastRepository;
 
     private Runnable regenerateUUID = () -> {
         Log.i(LOG_TAG, "Regenerating UUID");
 
         currentUUID = UUID.randomUUID();
         long time = System.currentTimeMillis();
-        mBroadcastRepository.insertOwnUUID(new OwnUUID(currentUUID, new Date(time)));
+        broadcastRepository.insertOwnUUID(new OwnUUID(currentUUID, new Date(time)));
 
         // Convert the UUID to its SHA-256 hash
         ByteBuffer inputBuffer = ByteBuffer.wrap(new byte[/*Long.BYTES*/ 8 * 2]);
@@ -88,7 +89,7 @@ public class TracingService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        mBroadcastRepository = new BroadcastRepository(this.getApplication());
+        broadcastRepository = new BroadcastRepository(this.getApplication());
         HandlerThread thread = new HandlerThread("TrackerHandler", Thread.NORM_PRIORITY);
         thread.start();
 
@@ -100,7 +101,8 @@ public class TracingService extends Service {
         assert bluetoothManager != null;
         BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
 
-        bleScanner = new BleScanner(bluetoothAdapter, mBroadcastRepository);
+        beaconCache = new BeaconCache(broadcastRepository, serviceHandler);
+        bleScanner = new BleScanner(bluetoothAdapter, beaconCache);
         bleAdvertiser = new BleAdvertiser(bluetoothAdapter, serviceHandler);
 
         regenerateUUID.run();
@@ -147,6 +149,7 @@ public class TracingService extends Service {
     public void onDestroy() {
         bleAdvertiser.stopAdvertising();
         bleScanner.stopScanning();
+        beaconCache.flush();
         super.onDestroy();
     }
 

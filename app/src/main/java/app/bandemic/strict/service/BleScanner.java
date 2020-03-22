@@ -26,11 +26,11 @@ public class BleScanner {
 
     private BluetoothLeScanner bluetoothLeScanner;
     private ScanCallback bluetoothScanCallback;
-    private BroadcastRepository broadcastRepository;
+    private BeaconCache beaconCache;
 
-    public BleScanner(BluetoothAdapter bluetoothAdapter, BroadcastRepository broadcastRepository) {
+    public BleScanner(BluetoothAdapter bluetoothAdapter, BeaconCache beaconCache) {
         bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
-        this.broadcastRepository = broadcastRepository;
+        this.beaconCache = beaconCache;
     }
 
     public void startScanning() {
@@ -64,11 +64,7 @@ public class BleScanner {
 
                 Log.d(LOG_TAG, Arrays.toString(receivedHash) + ":" + distance);
 
-                broadcastRepository.insertBeacon(new Beacon(
-                        receivedHash,
-                        new Date(System.currentTimeMillis()),
-                        distance
-                ));
+                beaconCache.addReceivedBroadcast(receivedHash, distance);
             }
         };
 
