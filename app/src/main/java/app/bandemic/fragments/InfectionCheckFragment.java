@@ -2,6 +2,7 @@ package app.bandemic.fragments;
 
 import androidx.lifecycle.ViewModelProviders;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -15,8 +16,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
-import com.example.infectiontracker.ContactLogger;
-import com.example.infectiontracker.InfectedInfo;
 import app.bandemic.R;
 import app.bandemic.ui.InfectedUUIDsAdapter;
 import app.bandemic.viewmodel.InfectionCheckViewModel;
@@ -74,7 +73,7 @@ public class InfectionCheckFragment extends Fragment {
                 noInfectionInformation.setVisibility(View.GONE);
                 recyclerView.setVisibility(View.VISIBLE);
                 getView().setOnClickListener(v -> {
-                    onInfectionClick(v);
+                    //onInfectionClick(v);
                 });
             }
             else {
@@ -87,10 +86,10 @@ public class InfectionCheckFragment extends Fragment {
         mViewModel.refreshInfectedUUIDs();
     }
 
-    public void onInfectionClick(View v) {
+    /*public void onInfectionClick(View v) {
         Intent intent = new Intent(getContext(), InfectedInfo.class);
         intent.putExtra(InfectedInfo.INTENT_CONTACT_TIME, mAdapter.getLastInfectedUUUID().createdOn.toString());
         intent.putExtra(InfectedInfo.INTENT_CONTACT_DURATION, "30min");
         startActivity(intent);
-    }
+    }*/
 }

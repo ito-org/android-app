@@ -72,7 +72,6 @@ public class InfectedUUIDDatabaseMatchTest {
 
         Beacon beacon = new Beacon(
                 hash,
-                UUID.randomUUID(),
                 new Date(),
                 12
         );
