@@ -20,6 +20,8 @@
     <string name="notification_channel">Notifications about COVID-19 contact tracing activity</string>
 
     <string name="encountered_infections">Encountered infections</string>
+    <string name="detected_devices">Detected devices</string>
 
     <string name="main_status_ok">We have currently no data that indicates you had contact with an infected person</string>
+    <string name="main_no_devices">There are currently no active devices in close proximity</string>
 </resources>
