@@ -209,6 +209,7 @@ public class TracingService extends Service {
                 // TODO
             }
         };
+
         // TODO: check if null when launching with Bluetooth disabled
         bluetoothLeAdvertiser.startAdvertising(settings, data, advertisingCallback);
     }
