@@ -23,8 +23,6 @@ public class MainActivity extends AppCompatActivity {
 
     private MainActivityViewModel mViewModel;
 
-    private final boolean showContactLogger = false;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,10 +38,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
         checkPermissions();
-
-        if(showContactLogger) {
-            startActivity(new Intent(this, ContactLogger.class));
-        }
 
         new Thread( () -> {
             if (AppDatabase.getDatabase(this).settingsDao().getSetting("data_ok")==null) {

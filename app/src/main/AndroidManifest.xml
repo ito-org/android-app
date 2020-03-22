@@ -45,20 +45,8 @@
         </activity>
 
         <activity
-            android:name="app.bandemic.ui.ContactLogger"
-            android:label="@string/contact_logger_title"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-
-        <activity
             android:name="app.bandemic.ui.DataProtectionInfo"
             android:label="@string/dataprotection_title"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-
-        <activity
-            android:name=".InfectedInfo"
-            android:label="@string/infected_info_title"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
     </application>

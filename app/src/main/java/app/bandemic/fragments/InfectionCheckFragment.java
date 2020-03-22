@@ -72,24 +72,12 @@ public class InfectionCheckFragment extends Fragment {
                 mAdapter.setInfectedUUIDs(infectedUUIDS);
                 noInfectionInformation.setVisibility(View.GONE);
                 recyclerView.setVisibility(View.VISIBLE);
-                getView().setOnClickListener(v -> {
-                    //onInfectionClick(v);
-                });
             }
             else {
                 noInfectionInformation.setVisibility(View.VISIBLE);
-                recyclerView.setVisibility(View.GONE);
-                getView().setOnClickListener(null);
             }
         });
 
         mViewModel.refreshInfectedUUIDs();
     }
-
-    /*public void onInfectionClick(View v) {
-        Intent intent = new Intent(getContext(), InfectedInfo.class);
-        intent.putExtra(InfectedInfo.INTENT_CONTACT_TIME, mAdapter.getLastInfectedUUUID().createdOn.toString());
-        intent.putExtra(InfectedInfo.INTENT_CONTACT_DURATION, "30min");
-        startActivity(intent);
-    }*/
 }
