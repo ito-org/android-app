@@ -7,6 +7,7 @@
     tools:context="app.bandemic.fragments.EnvironmentLoggerFragment">
 
     <androidx.cardview.widget.CardView
+        android:id="@+id/environmentCard"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_margin="16dp"
@@ -28,7 +29,7 @@
                 android:textColor="@android:color/primary_text_dark" />
 
             <LinearLayout
-                android:id="@+id/layout_not_infected1"
+                android:id="@+id/layout_no_detections"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
