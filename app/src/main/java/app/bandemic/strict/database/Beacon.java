@@ -1,5 +1,7 @@
 package app.bandemic.strict.database;
 
+import android.util.Log;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
@@ -9,6 +11,7 @@ import androidx.room.PrimaryKey;
 
 @Entity
 public class Beacon {
+    private static final String LOG_TAG = "Beacon";
 
     @PrimaryKey(autoGenerate = true)
     public int id = 0;
@@ -16,19 +19,20 @@ public class Beacon {
     public byte[] receivedDoubleHash;
     public Date timestamp;
     public double distance;
+    public long duration;
 
-    public Beacon(byte[] receivedHash,
-                  Date timestamp,
-                  double distance) {
+    public Beacon(byte[] receivedHash, Date timestamp, long duration, double distance) {
         this.receivedHash = receivedHash;
-        MessageDigest digest = null;
+        MessageDigest digest;
         try {
             digest = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            Log.wtf(LOG_TAG, e);
+            throw new RuntimeException(e);
         }
         this.receivedDoubleHash = digest.digest(receivedHash);
         this.timestamp = timestamp;
+        this.duration = duration;
         this.distance = distance;
     }
 }

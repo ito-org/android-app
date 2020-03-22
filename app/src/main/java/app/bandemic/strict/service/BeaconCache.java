@@ -14,7 +14,7 @@ import okio.ByteString;
 
 public class BeaconCache {
     private static final String LOG_TAG = "BeaconCache";
-    private final int MOVING_AVERAGE_LENGTH = 15;
+    private final int MOVING_AVERAGE_LENGTH = 7;
     private final long FLUSH_AFTER_MILLIS = 1000 * 60 * 3; // flush after three minutes
 
     private BroadcastRepository broadcastRepository;
@@ -36,8 +36,8 @@ public class BeaconCache {
         }
         if (avg < entry.lowestDistance) {
             entry.lowestDistance = avg;
-            insertIntoDB(entry.hash, avg);
         }
+        insertIntoDB(entry.hash, entry.lowestDistance, entry.firstReceived, entry.lastReceived - entry.firstReceived);
         cache.remove(hash);
     }
 
@@ -56,7 +56,10 @@ public class BeaconCache {
             entry = new CacheEntry();
             cache.put(hashString, entry);
             entry.hash = hash;
+            entry.firstReceived = System.currentTimeMillis();
         }
+
+        entry.lastReceived = System.currentTimeMillis();
 
         // postpone flushing
         serviceHandler.removeCallbacks(entry.flushRunnable);
@@ -74,21 +77,24 @@ public class BeaconCache {
             if (avg < entry.lowestDistance) {
                 //insert new lowest value to DB
                 entry.lowestDistance = avg;
-                insertIntoDB(hash, avg);
+                //insertIntoDB(hash, avg);
             }
             distances.popLast();
         }
     }
 
-    private void insertIntoDB(byte[] hash, double distance) {
+    private void insertIntoDB(byte[] hash, double distance, long startTime, long duration) {
         broadcastRepository.insertBeacon(new Beacon(
                 hash,
-                new Date(System.currentTimeMillis()),
+                new Date(startTime),
+                duration,
                 distance
         ));
     }
 
     private class CacheEntry {
+        long firstReceived;
+        long lastReceived;
         byte[] hash;
         CircularArray<Double> distances = new CircularArray<>(MOVING_AVERAGE_LENGTH);
         double lowestDistance = Double.MAX_VALUE;

@@ -40,7 +40,7 @@ public class TracingService extends Service {
     public static final int BLUETOOTH_SIG = 2220;
     public static final int HASH_LENGTH = 26;
     public static final int BROADCAST_LENGTH = HASH_LENGTH + 1;
-    private static final int UUID_VALID_TIME = 1000 * 60 * 60; //ms * sec * min = 1h
+    private static final int UUID_VALID_TIME = 1000 * 60 * 30; //ms * sec * 30 min
 
     private Looper serviceLooper;
     private Handler serviceHandler;
