@@ -45,7 +45,7 @@ public class InfectionCheckFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         recyclerView = view.findViewById(R.id.infection_check_list_recycler_view);
-        recyclerView.setHasFixedSize(true);
+        //recyclerView.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(layoutManager);
         mAdapter = new InfectedUUIDsAdapter();
