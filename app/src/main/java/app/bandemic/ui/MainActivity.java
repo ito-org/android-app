@@ -1,7 +1,9 @@
 package app.bandemic.ui;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
@@ -20,6 +22,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 public class MainActivity extends AppCompatActivity {
 
     private final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private final String DATA_OK = "data_ok";
 
     private MainActivityViewModel mViewModel;
 
@@ -38,6 +41,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
         checkPermissions();
+
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        if(!sharedPref.getBoolean("", false)) {
+
+        }
+
 
         new Thread( () -> {
             if (AppDatabase.getDatabase(this).settingsDao().getSetting("data_ok")==null) {
