@@ -49,6 +49,12 @@
             android:label="@string/dataprotection_title"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
+
+        <activity
+            android:name="app.bandemic.ui.Instructions"
+            android:label="@string/dataprotection_title"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
     </application>
 
 </manifest>

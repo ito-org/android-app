@@ -53,4 +53,10 @@
     <string name="infected_info_contact_duration">Ungefährer Kontaktzeitraum:</string>
     <string name="infected_info_link"><![CDATA[<a href="https://www.116117.de/de/coronavirus.php">Mehr information über weiteres Vorgehen</a>]]></string>
     <string name="main_no_devices">Es gibt aktuell keine Geräte in näherer Umgebung</string>
+
+    <string name="instructions_title">So geht\'s</string>
+    <string name="instructions_how_to">So geht\'s.</string>
+    <string name="instructions_turn_on_bluetooth">Bluetooth anschalten.</string>
+    <string name="instructions_nearby">Dein Gerät erfasst nun alle Geräte, die sich in deiner Nähe befinden.</string>
+    <string name="instructions_infected">Wenn jemand infiziert wurde den du getroffen hast, erhälst du eine Benachrichtigung mit einer Handlungsempfehlung.</string>
 </resources>

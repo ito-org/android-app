@@ -52,4 +52,10 @@
         ]]>
     </string>
     <string name="main_no_devices">There are currently no active devices in close proximity</string>
+
+    <string name="instructions_title">How it works</string>
+    <string name="instructions_how_to">How it works.</string>
+    <string name="instructions_turn_on_bluetooth">Turn on bluetooth</string>
+    <string name="instructions_nearby">Your device will trace other devices in your vicinity</string>
+    <string name="instructions_infected">When somebody gets infected that you met, you\'ll get a notification with further instructions</string>
 </resources>
