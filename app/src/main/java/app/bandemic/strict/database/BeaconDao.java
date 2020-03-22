@@ -14,6 +14,9 @@ public interface BeaconDao {
     @Query("SELECT * FROM beacon")
     LiveData<List<Beacon>> getAll();
 
+    @Query("SELECT * FROM beacon")
+    LiveData<List<Beacon>> getAllDistinctBroadcast();
+
     /*@Query("SELECT * FROM user WHERE uid IN (:userIds)")
     List<User> loadAllByIds(int[] userIds);
 

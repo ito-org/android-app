@@ -60,7 +60,7 @@ public class EnvironmentLoggerFragment extends Fragment {
 
         mViewModel = ViewModelProviders.of(this).get(EnvironmentLoggerViewModel.class);
 
-        mViewModel.getAllBeacons().observe(getViewLifecycleOwner(), new Observer<List<Beacon>>() {
+        mViewModel.getDistinctBeacons().observe(getViewLifecycleOwner(), new Observer<List<Beacon>>() {
             @Override
             public void onChanged(List<Beacon> beacons) {
                 if(beacons.size() != 0) {

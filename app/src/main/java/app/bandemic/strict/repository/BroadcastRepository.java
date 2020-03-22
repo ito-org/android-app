@@ -18,6 +18,7 @@ public class BroadcastRepository {
     private BeaconDao mBeaconDao;
     private LiveData<List<OwnUUID>> mAllOwnUUIDs;
     private LiveData<List<Beacon>> mAllBeacons;
+    private LiveData<List<Beacon>> mDistinctBeacons;
 
     public BroadcastRepository(Application application) {
         AppDatabase db = AppDatabase.getDatabase(application);
@@ -25,6 +26,7 @@ public class BroadcastRepository {
         mBeaconDao = db.beaconDao();
         mAllOwnUUIDs = mOwnUUIDDao.getAll();
         mAllBeacons = mBeaconDao.getAll();
+        mDistinctBeacons = mBeaconDao.getAllDistinctBroadcast();
     }
 
     public LiveData<List<OwnUUID>> getAllOwnUUIDs() {
@@ -33,6 +35,10 @@ public class BroadcastRepository {
 
     public LiveData<List<Beacon>> getAllBeacons() {
         return mAllBeacons;
+    }
+
+    public LiveData<List<Beacon>> getDistinctBeacons() {
+        return mDistinctBeacons;
     }
 
     public void insertOwnUUID(OwnUUID ownUUID) {

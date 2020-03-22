@@ -9,6 +9,7 @@ import android.widget.TextView;
 import app.bandemic.R;
 import app.bandemic.strict.database.Beacon;
 
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.List;
 
@@ -22,15 +23,13 @@ public class EnvironmentDevicesAdapter extends RecyclerView.Adapter<EnvironmentD
     public static class EnvironmentDevicesViewHolder extends RecyclerView.ViewHolder {
         public LinearLayout layout;
         public TextView textViewDate;
-        public TextView textViewDisease;
-        public TextView textViewDanger;
+        public TextView textViewDistance;
 
         public EnvironmentDevicesViewHolder(LinearLayout v) {
             super(v);
             layout = v;
-            textViewDate = v.findViewById(R.id.infected_list_text_view_date);
-            textViewDisease = v.findViewById(R.id.infected_list_text_view_disease);
-            textViewDanger = v.findViewById(R.id.infected_list_text_view_danger);
+            textViewDate = v.findViewById(R.id.nearby_devices_list_text_view_date);
+            textViewDistance = v.findViewById(R.id.nearby_devices_list_text_view_distance);
         }
     }
 
@@ -38,7 +37,7 @@ public class EnvironmentDevicesAdapter extends RecyclerView.Adapter<EnvironmentD
     @Override
     public EnvironmentDevicesViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LinearLayout l = (LinearLayout) LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.infected_encounter_view, parent, false);
+                .inflate(R.layout.nearby_devices_view, parent, false);
         EnvironmentDevicesViewHolder vh = new EnvironmentDevicesViewHolder(l);
         return vh;
     }
@@ -47,12 +46,8 @@ public class EnvironmentDevicesAdapter extends RecyclerView.Adapter<EnvironmentD
     public void onBindViewHolder(@NonNull EnvironmentDevicesViewHolder holder, int position) {
         Beacon data = beacons.get(position);
 
-        java.text.DateFormat df = DateFormat.getDateFormat(holder.layout.getContext());
-        // TODO: change to actual date from Beacons Table
-        holder.textViewDate.setText(df.format(data.timestamp));
-        holder.textViewDisease.setText(String.format("%.1f m", data.distance));
-        // TODO: this isn't actually the danger yet
-        // TODO: add nearest distance
+        holder.textViewDate.setText(SimpleDateFormat.getDateTimeInstance().format(data.timestamp));
+        holder.textViewDistance.setText(String.format("%.1f m", data.distance));
     }
 
     @Override
