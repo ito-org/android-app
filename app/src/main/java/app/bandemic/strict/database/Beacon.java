@@ -10,7 +10,7 @@ import androidx.room.PrimaryKey;
 @Entity
 public class Beacon {
 
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     public int id = 0;
     public byte[] receivedHash;
     public byte[] receivedDoubleHash;

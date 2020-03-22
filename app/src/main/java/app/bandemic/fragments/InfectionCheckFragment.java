@@ -15,6 +15,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
+import com.example.infectiontracker.ContactLogger;
+import com.example.infectiontracker.InfectedInfo;
 import app.bandemic.R;
 import app.bandemic.ui.InfectedUUIDsAdapter;
 import app.bandemic.viewmodel.InfectionCheckViewModel;
@@ -71,13 +73,24 @@ public class InfectionCheckFragment extends Fragment {
                 mAdapter.setInfectedUUIDs(infectedUUIDS);
                 noInfectionInformation.setVisibility(View.GONE);
                 recyclerView.setVisibility(View.VISIBLE);
+                getView().setOnClickListener(v -> {
+                    onInfectionClick(v);
+                });
             }
             else {
                 noInfectionInformation.setVisibility(View.VISIBLE);
                 recyclerView.setVisibility(View.GONE);
+                getView().setOnClickListener(null);
             }
         });
 
         mViewModel.refreshInfectedUUIDs();
+    }
+
+    public void onInfectionClick(View v) {
+        Intent intent = new Intent(getContext(), InfectedInfo.class);
+        intent.putExtra(InfectedInfo.INTENT_CONTACT_TIME, mAdapter.getLastInfectedUUUID().createdOn.toString());
+        intent.putExtra(InfectedInfo.INTENT_CONTACT_DURATION, "30min");
+        startActivity(intent);
     }
 }
