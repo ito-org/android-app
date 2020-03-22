@@ -5,37 +5,56 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
     tools:context=".MainActivity">
 
-    <androidx.cardview.widget.CardView
-        android:visibility="gone"
-        android:id="@+id/card_permission_required"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/main_swipe_refresh_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardCornerRadius="4dp"
-        app:cardBackgroundColor="@color/colorDanger">
+        android:layout_height="match_parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="16dp"
             android:orientation="vertical">
 
-            <TextView
+            <androidx.cardview.widget.CardView
+                android:visibility="gone"
+                android:id="@+id/card_permission_required"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/location_permission_required"
-                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                android:textColor="@android:color/primary_text_dark" />
+                android:layout_margin="16dp"
+                app:cardCornerRadius="8dp"
+                app:cardBackgroundColor="@color/colorDanger">
 
-            <com.google.android.material.button.MaterialButton
-                android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="16dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/location_permission_required"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                        android:textColor="@android:color/primary_text_dark" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:layout_marginTop="4dp"
+                        android:id="@+id/ask_permission"
+                        android:text="@string/location_permission_grant_permission" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.fragment.app.FragmentContainerView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:layout_marginTop="4dp"
-                android:id="@+id/ask_permission"
-                android:text="@string/location_permission_grant_permission" />
+                android:name="com.example.infectiontracker.fragments.InfectionCheckFragment"
+                android:id="@+id/fragment_infection_check"/>
         </LinearLayout>
-    </androidx.cardview.widget.CardView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </LinearLayout>
