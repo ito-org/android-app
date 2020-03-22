@@ -6,13 +6,21 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 
+import com.example.infectiontracker.viewmodel.MainActivityViewModel;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 public class MainActivity extends AppCompatActivity {
 
     private final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+
+    private MainActivityViewModel mViewModel;
 
     private final boolean showContactLogger = false;
 
@@ -20,6 +28,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mViewModel = new ViewModelProvider(this).get(MainActivityViewModel.class);
+
+        SwipeRefreshLayout refreshLayout = findViewById(R.id.main_swipe_refresh_layout);
+        refreshLayout.setOnRefreshListener(() -> {
+            mViewModel.onRefresh();
+        });
+        mViewModel.eventRefresh().observe(this, refreshing -> {
+            refreshLayout.setRefreshing(refreshing);
+        });
 
         checkPermissions();
 

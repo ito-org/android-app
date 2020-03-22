@@ -16,17 +16,20 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.example.infectiontracker.R;
 import com.example.infectiontracker.database.InfectedUUID;
 import com.example.infectiontracker.ui.InfectedUUIDsAdapter;
 import com.example.infectiontracker.viewmodel.InfectionCheckViewModel;
+import com.example.infectiontracker.viewmodel.MainActivityViewModel;
 
 import java.util.List;
 
 public class InfectionCheckFragment extends Fragment {
 
     private InfectionCheckViewModel mViewModel;
+    private MainActivityViewModel mainActivityViewModel;
 
     private RecyclerView recyclerView;
     private InfectedUUIDsAdapter mAdapter;
@@ -60,19 +63,24 @@ public class InfectionCheckFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
 
         mViewModel = ViewModelProviders.of(this).get(InfectionCheckViewModel.class);
+        mainActivityViewModel = ViewModelProviders.of(getActivity()).get(MainActivityViewModel.class);
 
-        mViewModel.getPossiblyInfectedEncounters().observe(getViewLifecycleOwner(), new Observer<List<InfectedUUID>>() {
-            @Override
-            public void onChanged(List<InfectedUUID> infectedUUIDS) {
-                if(infectedUUIDS.size() != 0) {
-                    mAdapter.setInfectedUUIDs(infectedUUIDS);
-                    noInfectionInformation.setVisibility(View.GONE);
-                    recyclerView.setVisibility(View.VISIBLE);
-                }
-                else {
-                    noInfectionInformation.setVisibility(View.VISIBLE);
-                    recyclerView.setVisibility(View.GONE);
-                }
+        mainActivityViewModel.eventRefresh().observe(getViewLifecycleOwner(), refreshing -> {
+            if(refreshing) {
+                mViewModel.refreshInfectedUUIDs();
+            }
+        });
+
+        mViewModel.getPossiblyInfectedEncounters().observe(getViewLifecycleOwner(), infectedUUIDS -> {
+            mainActivityViewModel.finishRefresh();
+            if(infectedUUIDS.size() != 0) {
+                mAdapter.setInfectedUUIDs(infectedUUIDS);
+                noInfectionInformation.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.VISIBLE);
+            }
+            else {
+                noInfectionInformation.setVisibility(View.VISIBLE);
+                recyclerView.setVisibility(View.GONE);
             }
         });
 
