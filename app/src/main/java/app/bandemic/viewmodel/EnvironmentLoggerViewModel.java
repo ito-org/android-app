@@ -14,19 +14,19 @@ public class EnvironmentLoggerViewModel extends AndroidViewModel {
 
     private BroadcastRepository mBroadcastRepository;
 
-    private LiveData<List<Beacon>> mAllBeacons;
+    private LiveData<List<Beacon>> mDistinctBeacons;
 
     public EnvironmentLoggerViewModel(Application application) {
         super(application);
         //TODO: are two instances of repository ok (in ViewModel and TracingService)?
         mBroadcastRepository = new BroadcastRepository(application);
-        mAllBeacons = mBroadcastRepository.getAllBeacons();
+        mDistinctBeacons = mBroadcastRepository.getDistinctBeacons();
     }
 
     //todo do I need a refresh function as for uuids? this should update automatically
 
-    public LiveData<List<Beacon>> getAllBeacons() {
-        return mAllBeacons;
+    public LiveData<List<Beacon>> getDistinctBeacons() {
+        return mDistinctBeacons;
     }
 }
 
