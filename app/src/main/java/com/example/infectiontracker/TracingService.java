@@ -28,6 +28,8 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
 
+import androidx.core.app.NotificationCompat;
+
 import com.example.infectiontracker.database.Beacon;
 import com.example.infectiontracker.database.OwnUUID;
 import com.example.infectiontracker.repository.BroadcastRepository;
@@ -39,8 +41,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.UUID;
-
-import androidx.core.app.NotificationCompat;
 
 public class TracingService extends Service {
     private static final int UUID_VALID_TIME = 1000 * 60 * 60; //ms * sec * min = 1h
@@ -84,7 +84,8 @@ public class TracingService extends Service {
     };
 
     private byte getTransmitPower() {
-        return (byte) -68;
+        // TODO look up transmit power for current device
+        return (byte) -65;
     }
 
     @Override
@@ -136,6 +137,7 @@ public class TracingService extends Service {
 
                 int rssi = result.getRssi();
 
+                // TODO take antenna attenuation into account
                 double distance = Math.pow(10d, ((double) txPower - rssi) / (10 * 2));
 
                 Log.d(LOG_TAG, Arrays.toString(receivedHash) + ":" + distance);
@@ -143,16 +145,24 @@ public class TracingService extends Service {
                         receivedHash,
                         currentUUID,
                         new Date(System.currentTimeMillis()),
-                        //TODO calculate distance from encoded transmission power and received signal strength
                         distance
                 ));
             }
         };
 
-        ScanSettings settings = new ScanSettings.Builder()
-                .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
-                .setReportDelay(0)
-                .build();
+        ScanSettings.Builder settingsBuilder = new ScanSettings.Builder()
+                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                .setReportDelay(0);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            settingsBuilder.setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
+                    .setNumOfMatches(ScanSettings.MATCH_NUM_MAX_ADVERTISEMENT)
+                    .setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            settingsBuilder.setLegacy(true);
+        }
 
         byte[] manufacturerDataMask = new byte[BROADCAST_LENGTH];
 
@@ -160,15 +170,15 @@ public class TracingService extends Service {
                 .setManufacturerData(BLUETOOTH_SIG, manufacturerDataMask, manufacturerDataMask)
                 .build();
 
-        bluetoothLeScanner.startScan(Collections.singletonList(filter), settings, leScanCallback);
+        bluetoothLeScanner.startScan(Collections.singletonList(filter), settingsBuilder.build(), leScanCallback);
     }
 
     private void advertise() {
         AdvertiseSettings settings = new AdvertiseSettings.Builder()
-                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_POWER)
-                .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
+                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
+                .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
                 .setConnectable(false)
-                .setTimeout(180000)
+                .setTimeout(0)
                 .build();
 
 
@@ -185,10 +195,11 @@ public class TracingService extends Service {
                 Log.i(LOG_TAG, "Advertising onStartSuccess");
 
                 // when the timeout expires, restart advertising
-                serviceHandler.postDelayed(() -> {
-                    bluetoothLeAdvertiser.stopAdvertising(this);
-                    serviceHandler.post(TracingService.this::advertise);
-                }, settingsInEffect.getTimeout());
+                if (settingsInEffect.getTimeout() > 0)
+                    serviceHandler.postDelayed(() -> {
+                        bluetoothLeAdvertiser.stopAdvertising(this);
+                        serviceHandler.post(TracingService.this::advertise);
+                    }, settingsInEffect.getTimeout());
             }
 
             @Override
