@@ -16,6 +16,13 @@
         android:layout_weight="1"
         android:textColor="@android:color/primary_text_dark"
         android:id="@+id/infected_list_text_view_disease" />
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="@android:color/primary_text_dark"
+        android:id="@+id/infected_list_text_view_distance" />
     
     <TextView
         android:id="@+id/infected_list_text_view_danger"

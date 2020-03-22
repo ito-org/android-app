@@ -3,6 +3,7 @@ package com.example.infectiontracker.viewmodel;
 import android.app.Application;
 
 import com.example.infectiontracker.database.InfectedUUID;
+import com.example.infectiontracker.database.Infection;
 import com.example.infectiontracker.repository.InfectedUUIDRepository;
 
 import java.util.List;
@@ -14,7 +15,7 @@ public class InfectionCheckViewModel extends AndroidViewModel {
 
     private InfectedUUIDRepository mRepository;
 
-    private LiveData<List<InfectedUUID>> possiblyInfectedEncounters;
+    private LiveData<List<Infection>> possiblyInfectedEncounters;
 
     public InfectionCheckViewModel(Application application) {
         super(application);
@@ -26,6 +27,6 @@ public class InfectionCheckViewModel extends AndroidViewModel {
         mRepository.refreshInfectedUUIDs();
     }
 
-    public LiveData<List<InfectedUUID>> getPossiblyInfectedEncounters() { return possiblyInfectedEncounters; }
+    public LiveData<List<Infection>> getPossiblyInfectedEncounters() { return possiblyInfectedEncounters; }
 
 }
