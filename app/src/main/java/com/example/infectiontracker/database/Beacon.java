@@ -18,12 +18,12 @@ public class Beacon {
     public byte[] receivedDoubleHash;
     public UUID ownUUID;
     public Date timestamp;
-    public int distance;
+    public double distance;
 
     public Beacon(byte[] receivedHash,
                   UUID ownUUID,
                   Date timestamp,
-                  int distance) {
+                  double distance) {
         this.receivedHash = receivedHash;
         MessageDigest digest = null;
         try {
