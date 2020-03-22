@@ -4,9 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.text.Layout;
 import android.view.View;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -28,11 +26,6 @@ public class MainActivity extends AppCompatActivity {
         if(showContactLogger) {
             startActivity(new Intent(this, ContactLogger.class));
         }
-
-
-        //TODO: Query db and call setStatusNotInfected
-        //and set last check time
-
     }
 
     private void checkPermissions() {
@@ -73,19 +66,4 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
-    /*
-    private void setStatusNotInfected(String lastCheckTime) {
-        findViewById(R.id.layout_not_infected1).setVisibility(View.VISIBLE);
-        findViewById(R.id.layout_not_infected2).setVisibility(View.VISIBLE);
-        findViewById(R.id.layout_time).setVisibility(View.GONE);
-        ((TextView)findViewById(R.id.main_status_last_check)).setText(lastCheckTime);
-    }
-
-    private void setStatusTrackingTimeNeeded() {
-        findViewById(R.id.layout_not_infected1).setVisibility(View.GONE);
-        findViewById(R.id.layout_not_infected2).setVisibility(View.GONE);
-        findViewById(R.id.layout_time).setVisibility(View.VISIBLE);
-    }*/
-
 }
