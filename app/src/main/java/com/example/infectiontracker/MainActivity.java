@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 
+import com.example.infectiontracker.database.AppDatabase;
 import com.example.infectiontracker.viewmodel.MainActivityViewModel;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -43,6 +44,14 @@ public class MainActivity extends AppCompatActivity {
         if(showContactLogger) {
             startActivity(new Intent(this, ContactLogger.class));
         }
+
+        new Thread( () -> {
+            if (AppDatabase.getDatabase(this).settingsDao().getSetting("data_ok")==null) {
+                runOnUiThread( () -> {
+                    startActivity(new Intent(this, DataProtectionInfo.class));
+                });
+            }
+        }).start();
     }
 
     private void checkPermissions() {

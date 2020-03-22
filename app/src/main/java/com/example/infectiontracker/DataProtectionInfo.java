@@ -6,6 +6,9 @@ import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.widget.TextView;
 
+import com.example.infectiontracker.database.AppDatabase;
+import com.example.infectiontracker.database.Setting;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 public class DataProtectionInfo extends AppCompatActivity {
@@ -18,7 +21,9 @@ public class DataProtectionInfo extends AppCompatActivity {
     }
 
     public void onOk(View v) {
-        //TODO: Save in db that data protection info was shown and okayed
+        new Thread( () -> {
+            AppDatabase.getDatabase(this).settingsDao().insertSettting(new Setting("data_ok", "1"));
+        }).start();
         finish();
     }
 }
