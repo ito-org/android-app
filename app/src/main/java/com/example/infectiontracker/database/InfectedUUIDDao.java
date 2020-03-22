@@ -22,10 +22,11 @@ public interface InfectedUUIDDao {
             "last_name LIKE :last LIMIT 1")
     User findByName(String first, String last);*/
 
-    @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
-    @Query("SELECT * FROM infecteduuid JOIN beacon ON" +
-            " infecteduuid.hashedId = beacon.receivedDoubleHash")
-    LiveData<List<InfectedUUID>> getPossiblyInfectedEncounters();
+    // TODO: change != to =, this is just for demo!!!!
+    @Query("SELECT infecteduuid.id, beacon.timestamp, distance, createdOn, distrustLevel, icdCode" +
+            " FROM infecteduuid JOIN beacon ON" +
+            " infecteduuid.hashedId != beacon.receivedDoubleHash")
+    LiveData<List<Infection>> getPossiblyInfectedEncounters();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAll(InfectedUUID... uuids);

@@ -26,6 +26,8 @@
     <string name="notification_channel">Notifications about COVID-19 contact tracing activity</string>
 
     <string name="encountered_infections">Encountered infections</string>
+    <string name="verified">verified</string>
+    <string name="unverified">unverified</string>
 
     <string name="main_status_ok">We have currently no data that indicates you had contact with an infected person</string>
 </resources>
