@@ -1,4 +1,4 @@
-package com.example.infectiontracker;
+package com.example.infectiontracker.service;
 
 import android.Manifest;
 import android.content.BroadcastReceiver;
@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 
 import androidx.core.content.ContextCompat;
+
+import com.example.infectiontracker.service.TracingService;
 
 /*
 This BroadcastReceiver starts the tracing service when the system boots

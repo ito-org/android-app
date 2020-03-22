@@ -1,0 +1,170 @@
+package com.example.infectiontracker.service;
+
+import android.annotation.TargetApi;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.AdvertiseCallback;
+import android.bluetooth.le.AdvertiseData;
+import android.bluetooth.le.AdvertiseSettings;
+import android.bluetooth.le.BluetoothLeAdvertiser;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Color;
+import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.IBinder;
+import android.os.Looper;
+import android.util.Log;
+
+import androidx.core.app.NotificationCompat;
+
+import com.example.infectiontracker.MainActivity;
+import com.example.infectiontracker.R;
+import com.example.infectiontracker.database.OwnUUID;
+import com.example.infectiontracker.repository.BroadcastRepository;
+
+import java.nio.ByteBuffer;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.UUID;
+
+public class TracingService extends Service {
+    private static final String LOG_TAG = "TracingService";
+    private static final String DEFAULT_NOTIFICATION_CHANNEL = "ContactTracing";
+    private static final int NOTIFICATION_ID = 1;
+
+    public static final int BLUETOOTH_SIG = 2220;
+    public static final int HASH_LENGTH = 26;
+    public static final int BROADCAST_LENGTH = HASH_LENGTH + 1;
+    private static final int UUID_VALID_TIME = 1000 * 60 * 60; //ms * sec * min = 1h
+
+    private Looper serviceLooper;
+    private Handler serviceHandler;
+    private BleScanner bleScanner;
+    private BleAdvertiser bleAdvertiser;
+
+    private UUID currentUUID;
+
+    private BroadcastRepository mBroadcastRepository;
+
+    private Runnable regenerateUUID = () -> {
+        Log.i(LOG_TAG, "Regenerating UUID");
+
+        currentUUID = UUID.randomUUID();
+        long time = System.currentTimeMillis();
+        mBroadcastRepository.insertOwnUUID(new OwnUUID(currentUUID, new Date(time)));
+
+        // Convert the UUID to its SHA-256 hash
+        ByteBuffer inputBuffer = ByteBuffer.wrap(new byte[/*Long.BYTES*/ 8 * 2]);
+        inputBuffer.putLong(0, currentUUID.getMostSignificantBits());
+        inputBuffer.putLong(4, currentUUID.getLeastSignificantBits());
+
+        byte[] broadcastData;
+
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            broadcastData = digest.digest(inputBuffer.array());
+            broadcastData = Arrays.copyOf(broadcastData, BROADCAST_LENGTH);
+            broadcastData[HASH_LENGTH] = getTransmitPower();
+        } catch (NoSuchAlgorithmException e) {
+            Log.wtf(LOG_TAG, "Algorithm not found", e);
+            throw new RuntimeException(e);
+        }
+
+        bleAdvertiser.setBroadcastData(broadcastData);
+
+        serviceHandler.postDelayed(this.regenerateUUID, UUID_VALID_TIME);
+    };
+
+    private byte getTransmitPower() {
+        // TODO look up transmit power for current device
+        return (byte) -65;
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        mBroadcastRepository = new BroadcastRepository(this.getApplication());
+        HandlerThread thread = new HandlerThread("TrackerHandler", Thread.NORM_PRIORITY);
+        thread.start();
+
+        // Get the HandlerThread's Looper and use it for our Handler
+        serviceLooper = thread.getLooper();
+        serviceHandler = new Handler(serviceLooper);
+
+        BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        assert bluetoothManager != null;
+        BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
+
+        bleScanner = new BleScanner(bluetoothAdapter, mBroadcastRepository);
+        bleAdvertiser = new BleAdvertiser(bluetoothAdapter, serviceHandler);
+
+        regenerateUUID.run();
+        bleAdvertiser.startAdvertising();
+        bleScanner.startScanning();
+    }
+
+    @TargetApi(26)
+    private void createChannel(NotificationManager notificationManager) {
+        int importance = NotificationManager.IMPORTANCE_DEFAULT;
+
+        NotificationChannel mChannel = new NotificationChannel(DEFAULT_NOTIFICATION_CHANNEL, DEFAULT_NOTIFICATION_CHANNEL, importance);
+        mChannel.setDescription(getText(R.string.notification_channel).toString());
+        mChannel.enableLights(true);
+        mChannel.setLightColor(Color.BLUE);
+        mChannel.setImportance(NotificationManager.IMPORTANCE_LOW);
+        notificationManager.createNotificationChannel(mChannel);
+    }
+
+    private void runAsForgroundService() {
+        NotificationManager notificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            createChannel(notificationManager);
+
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
+                notificationIntent, 0);
+
+        Notification notification = new NotificationCompat.Builder(this,
+                DEFAULT_NOTIFICATION_CHANNEL)
+                .setContentTitle(getText(R.string.notification_title))
+                .setContentText(getText(R.string.notification_message))
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentIntent(pendingIntent)
+                .setPriority(NotificationManager.IMPORTANCE_LOW)
+                .setVibrate(null)
+                .build();
+
+        startForeground(NOTIFICATION_ID, notification);
+    }
+
+    @Override
+    public void onDestroy() {
+        bleAdvertiser.stopAdvertising();
+        bleScanner.stopScanning();
+        super.onDestroy();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        runAsForgroundService();
+        return START_STICKY;
+    }
+
+    /*
+    Don't do anything here, because the service doesn't have to communicate to other apps
+     */
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+}
