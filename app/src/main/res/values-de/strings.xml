@@ -45,4 +45,10 @@
         <a href="https://bandemic.app/privacy">More information</a>
         ]]>
     </string>
+
+    <string name="infected_info_title">Informationen bei Infizierung</string>
+    <string name="infected_info">Sie hatten potentiellen Kontakt mit einem Infizierten. Wenn möglich lassen Sie sich bitte testen um dies zu bestätigen und begeben Sie sich in isolation. Details:</string>
+    <string name="infected_info_contact_time">Ungefährer Kontaktzeitpunkt:</string>
+    <string name="infected_info_contact_duration">Ungefährer Kontaktzeitraum:</string>
+    <string name="infected_info_link"><![CDATA[<a href="https://www.116117.de/de/coronavirus.php">Mehr information über weiteres Vorgehen</a>]]></string>
 </resources>
