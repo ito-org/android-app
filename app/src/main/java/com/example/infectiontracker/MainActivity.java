@@ -29,7 +29,6 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, ContactLogger.class));
         }
 
-        setStatusTrackingTimeNeeded();
 
         //TODO: Query db and call setStatusNotInfected
         //and set last check time
@@ -75,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /*
     private void setStatusNotInfected(String lastCheckTime) {
         findViewById(R.id.layout_not_infected1).setVisibility(View.VISIBLE);
         findViewById(R.id.layout_not_infected2).setVisibility(View.VISIBLE);
@@ -86,6 +86,6 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.layout_not_infected1).setVisibility(View.GONE);
         findViewById(R.id.layout_not_infected2).setVisibility(View.GONE);
         findViewById(R.id.layout_time).setVisibility(View.VISIBLE);
-    }
+    }*/
 
 }

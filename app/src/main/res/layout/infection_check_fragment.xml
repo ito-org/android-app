@@ -6,21 +6,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".fragments.InfectionCheckFragment">
 
-    <androidx.cardview.widget.CardView
-        android:visibility="gone"
-        android:id="@+id/card_permission_required"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:padding="16dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardCornerRadius="4dp"
-        app:cardBackgroundColor="@color/colorDanger">
+        android:layout_height="match_parent">
 
-        <LinearLayout
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_permission_required"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_margin="16dp"
-            android:orientation="vertical">
+            app:cardCornerRadius="4dp"
+            app:cardBackgroundColor="@color/colorDanger">
 
-            
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/infection_check_list_recycler_view"
+                android:scrollbars="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </androidx.cardview.widget.CardView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </FrameLayout>

@@ -37,7 +37,9 @@ public class InfectedUUIDRepository {
     }
 
     public LiveData<List<InfectedUUID>> getPossiblyInfectedEncounters() {
-        return infectedUUIDDao.getPossiblyInfectedEncounters();
+        //return infectedUUIDDao.getPossiblyInfectedEncounters();
+        //Demo:
+        return infectedUUIDDao.getAll();
     }
 
     public void refreshInfectedUUIDs() {

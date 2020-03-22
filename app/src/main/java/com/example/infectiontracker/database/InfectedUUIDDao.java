@@ -8,6 +8,7 @@ import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.RoomWarnings;
 
 @Dao
 public interface InfectedUUIDDao {
@@ -21,6 +22,7 @@ public interface InfectedUUIDDao {
             "last_name LIKE :last LIMIT 1")
     User findByName(String first, String last);*/
 
+    @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Query("SELECT * FROM infecteduuid JOIN beacon ON" +
             " infecteduuid.hashedId = beacon.receivedDoubleHash")
     LiveData<List<InfectedUUID>> getPossiblyInfectedEncounters();
