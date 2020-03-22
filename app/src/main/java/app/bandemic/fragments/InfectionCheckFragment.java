@@ -77,12 +77,12 @@ public class InfectionCheckFragment extends Fragment {
                 noInfectionInformation.setVisibility(View.GONE);
                 recyclerView.setVisibility(View.VISIBLE);
 
-                cardView.setBackgroundColor(getResources().getColor(R.color.colorDanger));
+                cardView.setCardBackgroundColor(getResources().getColor(R.color.colorDanger));
             }
             else {
                 noInfectionInformation.setVisibility(View.VISIBLE);
                 recyclerView.setVisibility(View.GONE);
-                cardView.setBackgroundColor(getResources().getColor(R.color.colorNoDanger));
+                cardView.setCardBackgroundColor(getResources().getColor(R.color.colorNoDanger));
             }
         });
 

@@ -66,7 +66,7 @@ public class EnvironmentLoggerFragment extends Fragment {
 
         //View cardLayout = cardView.findViewById(R.id.environmentCard);
         mViewModel = ViewModelProviders.of(this).get(EnvironmentLoggerViewModel.class);
-        cardView.setBackgroundColor(getResources().getColor(R.color.colorNoDanger));
+        cardView.setCardBackgroundColor(getResources().getColor(R.color.colorNoDanger));
 
         mViewModel.getDistinctBeacons().observe(getViewLifecycleOwner(), new Observer<List<Beacon>>() {
             @Override
@@ -76,15 +76,15 @@ public class EnvironmentLoggerFragment extends Fragment {
                     noInfectionInformation.setVisibility(View.GONE);
                     recyclerView.setVisibility(View.VISIBLE);
                     if (beacons.size() >= 1) { //todo change to 5 (1 only for testing)
-                        cardView.setBackgroundColor(getResources().getColor(R.color.colorDanger));
+                        cardView.setCardBackgroundColor(getResources().getColor(R.color.colorDanger));
                     } else if (beacons.size() > 10) {
-                        cardView.setBackgroundColor(getResources().getColor(R.color.colorRealDanger));
+                        cardView.setCardBackgroundColor(getResources().getColor(R.color.colorRealDanger));
                     }
                 }
                 else {
                     noInfectionInformation.setVisibility(View.VISIBLE);
                     recyclerView.setVisibility(View.GONE);
-                    cardView.setBackgroundColor(getResources().getColor(R.color.colorNoDanger));
+                    cardView.setCardBackgroundColor(getResources().getColor(R.color.colorNoDanger));
 
                 }
             }
