@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 
 import com.example.infectiontracker.R;
 import com.example.infectiontracker.database.InfectedUUID;
@@ -30,6 +31,7 @@ public class InfectionCheckFragment extends Fragment {
     private RecyclerView recyclerView;
     private InfectedUUIDsAdapter mAdapter;
     private RecyclerView.LayoutManager layoutManager;
+    private LinearLayout noInfectionInformation;
 
     public static InfectionCheckFragment newInstance() {
         return new InfectionCheckFragment();
@@ -45,6 +47,7 @@ public class InfectionCheckFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         recyclerView = view.findViewById(R.id.infection_check_list_recycler_view);
+        noInfectionInformation = view.findViewById(R.id.layout_not_infected1);
         recyclerView.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(layoutManager);
@@ -61,7 +64,15 @@ public class InfectionCheckFragment extends Fragment {
         mViewModel.getPossiblyInfectedEncounters().observe(getViewLifecycleOwner(), new Observer<List<InfectedUUID>>() {
             @Override
             public void onChanged(List<InfectedUUID> infectedUUIDS) {
-                mAdapter.setInfectedUUIDs(infectedUUIDS);
+                if(infectedUUIDS.size() != 0) {
+                    mAdapter.setInfectedUUIDs(infectedUUIDS);
+                    noInfectionInformation.setVisibility(View.GONE);
+                    recyclerView.setVisibility(View.VISIBLE);
+                }
+                else {
+                    noInfectionInformation.setVisibility(View.VISIBLE);
+                    recyclerView.setVisibility(View.GONE);
+                }
             }
         });
 
