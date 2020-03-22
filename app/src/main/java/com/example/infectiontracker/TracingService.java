@@ -56,12 +56,17 @@ public class TracingService extends Service {
     private BluetoothLeScanner bluetoothLeScanner;
     private BluetoothLeAdvertiser bluetoothLeAdvertiser;
 
+    private AdvertiseCallback bluetoothAdvertiseCallback;
+    private ScanCallback bluetoothScanCallback;
+
     private UUID currentUUID;
     private byte[] broadcastData;
 
     private BroadcastRepository mBroadcastRepository;
 
     private Runnable regenerateUUID = () -> {
+        Log.i(LOG_TAG, "Regenerating UUID");
+
         currentUUID = UUID.randomUUID();
         long time = System.currentTimeMillis();
         mBroadcastRepository.insertOwnUUID(new OwnUUID(currentUUID, new Date(time)));
@@ -79,6 +84,8 @@ public class TracingService extends Service {
         } catch (NoSuchAlgorithmException e) {
             Log.wtf(LOG_TAG, "Algorithm not found", e);
         }
+
+        restartAdvertising();
 
         serviceHandler.postDelayed(this.regenerateUUID, UUID_VALID_TIME);
     };
@@ -108,12 +115,13 @@ public class TracingService extends Service {
         bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
 
         regenerateUUID.run();
-        advertise();
-        scan();
+        //startAdvertising(); //Done by regenerateUUID already
+        startScanning();
     }
 
-    private void scan() {
-        ScanCallback leScanCallback = new ScanCallback() {
+    private void startScanning() {
+        Log.d(LOG_TAG, "Starting scan");
+        bluetoothScanCallback = new ScanCallback() {
             public void onScanResult(int callbackType, ScanResult result) {
 
                 Log.d(LOG_TAG, "onScanResult");
@@ -170,10 +178,18 @@ public class TracingService extends Service {
                 .setManufacturerData(BLUETOOTH_SIG, manufacturerDataMask, manufacturerDataMask)
                 .build();
 
-        bluetoothLeScanner.startScan(Collections.singletonList(filter), settingsBuilder.build(), leScanCallback);
+        bluetoothLeScanner.startScan(Collections.singletonList(filter), settingsBuilder.build(), bluetoothScanCallback);
     }
 
-    private void advertise() {
+    private void stopScanning() {
+        Log.d(LOG_TAG, "Stopping scanning");
+        if(bluetoothScanCallback != null) {
+            bluetoothLeScanner.stopScan(bluetoothScanCallback);
+            bluetoothScanCallback = null;
+        }
+    }
+
+    private void startAdvertising() {
         AdvertiseSettings settings = new AdvertiseSettings.Builder()
                 .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
                 .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
@@ -188,7 +204,7 @@ public class TracingService extends Service {
                 .addManufacturerData(BLUETOOTH_SIG, broadcastData)
                 .build();
 
-        AdvertiseCallback advertisingCallback = new AdvertiseCallback() {
+        bluetoothAdvertiseCallback = new AdvertiseCallback() {
             @Override
             public void onStartSuccess(AdvertiseSettings settingsInEffect) {
                 super.onStartSuccess(settingsInEffect);
@@ -196,10 +212,8 @@ public class TracingService extends Service {
 
                 // when the timeout expires, restart advertising
                 if (settingsInEffect.getTimeout() > 0)
-                    serviceHandler.postDelayed(() -> {
-                        bluetoothLeAdvertiser.stopAdvertising(this);
-                        serviceHandler.post(TracingService.this::advertise);
-                    }, settingsInEffect.getTimeout());
+                    serviceHandler.postDelayed(() -> restartAdvertising(),
+                            settingsInEffect.getTimeout());
             }
 
             @Override
@@ -211,7 +225,20 @@ public class TracingService extends Service {
         };
 
         // TODO: check if null when launching with Bluetooth disabled
-        bluetoothLeAdvertiser.startAdvertising(settings, data, advertisingCallback);
+        bluetoothLeAdvertiser.startAdvertising(settings, data, bluetoothAdvertiseCallback);
+    }
+
+    private void stopAdvertising() {
+        Log.d(LOG_TAG, "Stopping advertising");
+        if(bluetoothAdvertiseCallback != null) {
+            bluetoothLeAdvertiser.stopAdvertising(bluetoothAdvertiseCallback);
+            bluetoothAdvertiseCallback = null;
+        }
+    }
+
+    private void restartAdvertising() {
+        stopAdvertising();
+        startAdvertising();
     }
 
     @TargetApi(26)
@@ -247,6 +274,13 @@ public class TracingService extends Service {
                 .build();
 
         startForeground(NOTIFICATION_ID, notification);
+    }
+
+    @Override
+    public void onDestroy() {
+        stopAdvertising();
+        stopScanning();
+        super.onDestroy();
     }
 
     @Override
