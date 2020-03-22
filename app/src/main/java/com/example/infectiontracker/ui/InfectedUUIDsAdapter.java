@@ -65,4 +65,11 @@ public class InfectedUUIDsAdapter extends RecyclerView.Adapter<InfectedUUIDsAdap
         this.infectedUUIDs = uuids;
         notifyDataSetChanged();
     }
+
+    public InfectedUUID getLastInfectedUUUID() {
+        if(!infectedUUIDs.isEmpty()) {
+            return infectedUUIDs.get(infectedUUIDs.size()-1);
+        }
+        return null;
+    }
 }

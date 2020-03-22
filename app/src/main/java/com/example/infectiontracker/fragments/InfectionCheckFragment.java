@@ -3,6 +3,7 @@ package com.example.infectiontracker.fragments;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -18,6 +19,8 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.example.infectiontracker.ContactLogger;
+import com.example.infectiontracker.InfectedInfo;
 import com.example.infectiontracker.R;
 import com.example.infectiontracker.database.InfectedUUID;
 import com.example.infectiontracker.ui.InfectedUUIDsAdapter;
@@ -77,13 +80,24 @@ public class InfectionCheckFragment extends Fragment {
                 mAdapter.setInfectedUUIDs(infectedUUIDS);
                 noInfectionInformation.setVisibility(View.GONE);
                 recyclerView.setVisibility(View.VISIBLE);
+                getView().setOnClickListener(v -> {
+                    onInfectionClick(v);
+                });
             }
             else {
                 noInfectionInformation.setVisibility(View.VISIBLE);
                 recyclerView.setVisibility(View.GONE);
+                getView().setOnClickListener(null);
             }
         });
 
         mViewModel.refreshInfectedUUIDs();
+    }
+
+    public void onInfectionClick(View v) {
+        Intent intent = new Intent(getContext(), InfectedInfo.class);
+        intent.putExtra(InfectedInfo.INTENT_CONTACT_TIME, mAdapter.getLastInfectedUUUID().createdOn.toString());
+        intent.putExtra(InfectedInfo.INTENT_CONTACT_DURATION, "30min");
+        startActivity(intent);
     }
 }
