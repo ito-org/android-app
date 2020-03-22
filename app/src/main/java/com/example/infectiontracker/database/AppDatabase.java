@@ -15,7 +15,7 @@ import androidx.room.TypeConverters;
         OwnUUID.class,
         InfectedUUID.class,
         Setting.class},
-        version = 7, exportSchema = false)
+        version = 8, exportSchema = false)
 @TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase {
     public abstract BeaconDao beaconDao();

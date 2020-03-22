@@ -50,7 +50,7 @@ public class EnvironmentDevicesAdapter extends RecyclerView.Adapter<EnvironmentD
         java.text.DateFormat df = DateFormat.getDateFormat(holder.layout.getContext());
         // TODO: change to actual date from Beacons Table
         holder.textViewDate.setText(df.format(data.timestamp));
-        holder.textViewDisease.setText(Double.toString(data.distance));
+        holder.textViewDisease.setText(String.format("%.1f m", data.distance));
         // TODO: this isn't actually the danger yet
         // TODO: add nearest distance
     }
