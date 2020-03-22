@@ -10,20 +10,24 @@
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
         android:layout_marginTop="48dp"
         android:text="@string/dataprotection_title"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:layout_editor_absoluteX="29dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/dataProtectionContent"
-        android:layout_width="345dp"
-        android:layout_height="414dp"
-        android:layout_marginStart="29dp"
-        android:layout_marginTop="37dp"
-        android:layout_marginEnd="37dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="32dp"
         android:text="@string/dataprotection_content"
+        app:layout_constraintBottom_toTopOf="@+id/dataprotection_ok"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView" />
@@ -32,12 +36,10 @@
         android:id="@+id/dataprotection_ok"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="51dp"
-        android:layout_marginEnd="85dp"
-        android:layout_marginBottom="103dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="32dp"
         android:onClick="onOk"
         android:text="@string/dataprotection_ok"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/dataProtectionContent" />
+        app:layout_constraintEnd_toEndOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

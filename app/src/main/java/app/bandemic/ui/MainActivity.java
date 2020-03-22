@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 
+import androidx.preference.PreferenceManager;
 import app.bandemic.R;
 import app.bandemic.strict.database.AppDatabase;
 import app.bandemic.strict.service.TracingService;
@@ -22,7 +23,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 public class MainActivity extends AppCompatActivity {
 
     private final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
-    private final String DATA_OK = "data_ok";
+    public static final String PREFERENCE_DATA_OK = "data_ok";
 
     private MainActivityViewModel mViewModel;
 
@@ -42,19 +43,10 @@ public class MainActivity extends AppCompatActivity {
 
         checkPermissions();
 
-        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-        if(!sharedPref.getBoolean("", false)) {
-
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        if(!sharedPref.getBoolean(PREFERENCE_DATA_OK, false)) {
+            startActivity(new Intent(this, DataProtectionInfo.class));
         }
-
-
-        new Thread( () -> {
-            if (AppDatabase.getDatabase(this).settingsDao().getSetting("data_ok")==null) {
-                runOnUiThread( () -> {
-                    startActivity(new Intent(this, DataProtectionInfo.class));
-                });
-            }
-        }).start();
     }
 
     private void checkPermissions() {

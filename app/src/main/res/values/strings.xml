@@ -45,7 +45,7 @@
         <ul>
             <li>Data is collected locally on your phone and <u>only</u> leaves your phone when you are infected </li>
             <li>Contact data is anonymized</li>
-            <li>Contact data older than two weeks is deleted</li>
+            <!--<li>Contact data older than two weeks is deleted</li>-->
         </ul>
         <br>
         <a href="https://bandemic.app/privacy">More information</a>

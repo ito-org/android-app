@@ -22,6 +22,7 @@
     <string name="encountered_infections">Kontakt mit Infizierten</string>
     <string name="verified">verifiziert</string>
     <string name="unverified">unverifiziert</string>
+    <string name="detected_devices">Gefundene Geräte</string>
 
     <string name="main_status_ok">Wir haben momentan keine Anhaltspunkte dafür, dass Sie Kontakt mit einem Infizierten hatten</string>
 
@@ -39,10 +40,10 @@
         <ul>
             <li>Kontaktdaten werden lokal auf ihrem Gerät gesammelt und verlassen dieses <u>ausschließlich</u> wenn Sie infiziert wurden</li>
             <li>Kontaktdaten werden anonymsiert ausgetauscht</li>
-            <li>Kotaktdaten älter als zwei Wochen werden automatisch gelöscht</li>
+            <!--<li>Kotaktdaten älter als zwei Wochen werden automatisch gelöscht</li>-->
         </ul>
         <br>
-        <a href="https://bandemic.app/privacy">More information</a>
+        <a href="https://bandemic.app/privacy">Mehr informationen</a>
         ]]>
     </string>
 
@@ -51,4 +52,5 @@
     <string name="infected_info_contact_time">Ungefährer Kontaktzeitpunkt:</string>
     <string name="infected_info_contact_duration">Ungefährer Kontaktzeitraum:</string>
     <string name="infected_info_link"><![CDATA[<a href="https://www.116117.de/de/coronavirus.php">Mehr information über weiteres Vorgehen</a>]]></string>
+    <string name="main_no_devices">Es gibt aktuell keine Geräte in näherer Umgebung</string>
 </resources>
