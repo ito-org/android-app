@@ -11,7 +11,7 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
 public class InfectionCheckViewModel extends AndroidViewModel {
-    // TODO: Implement the ViewModel
+
     private InfectedUUIDRepository mRepository;
 
     private LiveData<List<InfectedUUID>> possiblyInfectedEncounters;
