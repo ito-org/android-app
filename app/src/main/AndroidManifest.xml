@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.infectiontracker">
-
+    <!-- TODO: change package id!! e.g. online.infectionchain.bandemic -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -22,7 +22,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <receiver android:name=".StartupListener">
+        <receiver android:name=".service.StartupListener">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
@@ -30,7 +30,7 @@
         </receiver>
 
         <service
-            android:name=".TracingService"
+            android:name=".service.TracingService"
             android:enabled="true"
             android:exported="false" />
 
@@ -48,6 +48,12 @@
         <activity
             android:name=".ContactLogger"
             android:label="@string/contact_logger_title"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+
+        <activity
+            android:name=".DataProtectionInfo"
+            android:label="@string/dataprotection_title"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
 

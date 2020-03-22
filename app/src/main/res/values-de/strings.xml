@@ -1,0 +1,48 @@
+<resources>
+    <string name="app_name">BanDemic</string>
+    <string name="title_activity_main">BanDemic</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Weiter</string>
+    <string name="previous">Zurück</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+
+    <string name="location_permission_required">Diese Anwendung benötigt Zugriff auf den Standort um Bluetooth benutzen zu können.</string>
+    <string name="location_permission_grant_permission">Erneut fragen</string>
+
+    <string name="contact_logger_title">Kontaktaufzeichnung</string>
+    
+    <string name="notification_title">COVID-19 Kontaktaufzeichnung</string>
+    <string name="notification_message">COVID-19 Kontaktaufzeichnung läuft</string>
+    <string name="notification_channel">Benachrichtigungen über COVID-19 Kontaktaufzeichnung</string>
+
+    <string name="encountered_infections">Kontakt mit Infizierten</string>
+    <string name="verified">verifiziert</string>
+    <string name="unverified">unverifiziert</string>
+
+    <string name="main_status_ok">Wir haben momentan keine Anhaltspunkte dafür, dass Sie Kontakt mit einem Infizierten hatten</string>
+
+    
+    <string name="dataprotection_title">Datenschutzinformationen</string>
+    <string name="dataprotection_ok">OK</string>
+    <string name="dataprotection_content">
+        <![CDATA[
+        Diese Anwendung sammelt Kontakte mit anderen um Sie später darüber informiereun zu können,
+        dass Sie kontakt mit einem Infizierten hatten und um andere über potentiellen Kontakt mit
+        infizierten Personen zu informieren. Diese Kontaktaufzeichnung erfolgt so Vertraulich wie
+        möglich:
+        <br>
+        <br>
+        <ul>
+            <li>Kontaktdaten werden lokal auf ihrem Gerät gesammelt und verlassen dieses <u>ausschließlich</u> wenn Sie infiziert wurden</li>
+            <li>Kontaktdaten werden anonymsiert ausgetauscht</li>
+            <li>Kotaktdaten älter als zwei Wochen werden automatisch gelöscht</li>
+        </ul>
+        <br>
+        <a href="https://bandemic.app/privacy">More information</a>
+        ]]>
+    </string>
+</resources>

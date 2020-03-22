@@ -6,13 +6,13 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 
+import com.example.infectiontracker.database.AppDatabase;
+import com.example.infectiontracker.service.TracingService;
 import com.example.infectiontracker.viewmodel.MainActivityViewModel;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -43,6 +43,14 @@ public class MainActivity extends AppCompatActivity {
         if(showContactLogger) {
             startActivity(new Intent(this, ContactLogger.class));
         }
+
+        new Thread( () -> {
+            if (AppDatabase.getDatabase(this).settingsDao().getSetting("data_ok")==null) {
+                runOnUiThread( () -> {
+                    startActivity(new Intent(this, DataProtectionInfo.class));
+                });
+            }
+        }).start();
     }
 
     private void checkPermissions() {

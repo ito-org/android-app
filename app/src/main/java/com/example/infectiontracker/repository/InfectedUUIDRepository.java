@@ -60,8 +60,8 @@ public class InfectedUUIDRepository {
             @Override
             public void onFailure(Call<InfectedUUIDResponse> call, Throwable t) {
                 // TODO error handling
-                Log.e(LOG_TAG, t.getCause().getMessage());
-                Log.e(LOG_TAG, t.getMessage() + t.getStackTrace().toString());
+                //Log.e(LOG_TAG, t.getCause().getMessage());
+                //Log.e(LOG_TAG, t.getMessage() + t.getStackTrace().toString());
             }
         });
     }

@@ -55,6 +55,12 @@
                 android:layout_height="wrap_content"
                 android:name="com.example.infectiontracker.fragments.InfectionCheckFragment"
                 android:id="@+id/fragment_infection_check"/>
+
+            <androidx.fragment.app.FragmentContainerView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:name="com.example.infectiontracker.fragments.EnvironmentLoggerFragment"
+                android:id="@+id/fragment_environment_logger"/>
         </LinearLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </LinearLayout>

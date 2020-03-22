@@ -28,6 +28,28 @@
     <string name="encountered_infections">Encountered infections</string>
     <string name="verified">verified</string>
     <string name="unverified">unverified</string>
+    <string name="detected_devices">Detected devices</string>
 
     <string name="main_status_ok">We have currently no data that indicates you had contact with an infected person</string>
+
+
+    <string name="dataprotection_title">Data protection information</string>
+    <string name="dataprotection_ok">OK</string>
+    <string name="dataprotection_content">
+        <![CDATA[
+        This app collects the contacts you have with others to inform you if you had contact with
+        a potential infected or to inform others of your potential infection. This data collection
+        is done as privacy conscious as possible:
+        <br>
+        <br>
+        <ul>
+            <li>Data is collected locally on your phone and <u>only</u> leaves your phone when you are infected </li>
+            <li>Contact data is anonymized</li>
+            <li>Contact data older than two weeks is deleted</li>
+        </ul>
+        <br>
+        <a href="https://bandemic.app/privacy">More information</a>
+        ]]>
+    </string>
+    <string name="main_no_devices">There are currently no active devices in close proximity</string>
 </resources>

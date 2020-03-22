@@ -12,16 +12,14 @@ import androidx.room.PrimaryKey;
 @Entity
 public class Beacon {
 
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     public int id = 0;
     public byte[] receivedHash;
     public byte[] receivedDoubleHash;
-    public UUID ownUUID;
     public Date timestamp;
     public double distance;
 
     public Beacon(byte[] receivedHash,
-                  UUID ownUUID,
                   Date timestamp,
                   double distance) {
         this.receivedHash = receivedHash;
@@ -32,7 +30,6 @@ public class Beacon {
             e.printStackTrace();
         }
         this.receivedDoubleHash = digest.digest(receivedHash);
-        this.ownUUID = ownUUID;
         this.timestamp = timestamp;
         this.distance = distance;
     }

@@ -4,14 +4,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".fragments.InfectionCheckFragment">
+    tools:context=".fragments.EnvironmentLoggerFragment">
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginLeft="16dp"
+        android:layout_margin="16dp"
         app:cardCornerRadius="8dp"
         app:cardBackgroundColor="@color/colorDanger">
 
@@ -24,7 +22,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/encountered_infections"
+                android:text="@string/detected_devices"
                 android:paddingBottom="4dp"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 android:textColor="@android:color/primary_text_dark" />
@@ -48,12 +46,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColor="@android:color/primary_text_dark"
-                    android:text="@string/main_status_ok" />
+                    android:text="@string/main_no_devices" />
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:visibility="gone"
-                android:id="@+id/infection_check_list_recycler_view"
+                android:id="@+id/environment_logger_list_recycler_view"
                 android:scrollbars="vertical"
                 android:overScrollMode="never"
                 android:layout_width="match_parent"
