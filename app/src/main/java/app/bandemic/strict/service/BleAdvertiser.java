@@ -38,6 +38,17 @@ public class BleAdvertiser {
 
     public void setBroadcastData(byte[] broadcastData) {
         this.broadcastData = broadcastData;
+
+        //Restart advertising so that mac address changes
+        //Otherwise the device could be recognized that way even though the UUID has changed
+        if(bluetoothAdvertiseCallback != null) {
+            restartAdvertising();
+        }
+    }
+
+    private void restartAdvertising() {
+        stopAdvertising();
+        startAdvertising();
     }
 
     public void startAdvertising() {
@@ -115,7 +126,7 @@ public class BleAdvertiser {
                 mBluetoothGattServer.sendResponse(device,
                         requestId,
                         BluetoothGatt.GATT_SUCCESS,
-                        0,
+                        offset,
                         Arrays.copyOfRange(broadcastData, offset, broadcastData.length));
             } else {
                 // Invalid characteristic

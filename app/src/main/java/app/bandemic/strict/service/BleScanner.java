@@ -5,21 +5,33 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
+import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanRecord;
+import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.os.Build;
+import android.os.ParcelUuid;
 import android.util.Log;
+import android.util.LruCache;
 
-import java.util.UUID;
+import java.util.Collections;
 
 public class BleScanner {
     private static final String LOG_TAG = "BleScanner";
+    private final BluetoothLeScanner bluetoothLeScanner;
+    private final BeaconCache beaconCache;
+    private final Context context;
 
-    private BluetoothAdapter bluetoothAdapter;
-    private BeaconCache beaconCache;
-    private BluetoothAdapter.LeScanCallback callback;
-    private Context context;
+    private ScanCallback bluetoothScanCallback;
+
+    private LruCache<String, byte[]> macAddressCache = new LruCache<>(100);
 
     public BleScanner(BluetoothAdapter bluetoothAdapter, BeaconCache beaconCache, Context context) {
-        this.bluetoothAdapter = bluetoothAdapter;
+        this.bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
         this.beaconCache = beaconCache;
         this.context = context;
     }
@@ -38,53 +50,118 @@ public class BleScanner {
     public void startScanning() {
         Log.d(LOG_TAG, "Starting scan");
 
-        UUID[] uuids = {BandemicProfile.BANDEMIC_SERVICE};
-        callback = new BluetoothAdapter.LeScanCallback() {
-            @Override
-            public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-                Log.i(LOG_TAG, "Found device with rssi " + rssi);
-                int txPower = 0; //TODO
+
+        ScanFilter filter = new ScanFilter.Builder()
+                .setServiceUuid(new ParcelUuid(BandemicProfile.BANDEMIC_SERVICE))
+                .build();
+
+        bluetoothScanCallback = new ScanCallback() {
+            public void onScanResult(int callbackType, ScanResult result) {
+
+                Log.d(LOG_TAG, "onScanResult");
+
+                ScanRecord record = result.getScanRecord();
+
+                // if there is no record, discard this packet
+                if (record == null) {
+                    return;
+                }
+
+                int txPower = record.getTxPowerLevel();
+                int rssi = result.getRssi();
+
+                BluetoothDevice device = result.getDevice();
+
+                String deviceAddress = device.getAddress();
+
+                Log.i(LOG_TAG, "Found device with rssi=" + rssi + " txPower="+txPower);
+
+
                 double distance = Math.pow(10d, ((double) txPower - rssi) / (10 * 2));
-                BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
-                    @Override
-                    public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-                        Log.i(LOG_TAG, "State changed to " + newState);
-                        if (newState == BluetoothGatt.STATE_CONNECTED) {
-                            Log.i(LOG_TAG, "Connected, read characterisic ...");
-                            gatt.discoverServices();
 
+                //Cache UUID results for mac addresses we have already connected to
+                // so we don't have to build up connections again.
+                //Only send updated distance to BeaconCache
+                byte[] hashOfUUIDCached = macAddressCache.get(deviceAddress);
+                if (hashOfUUIDCached != null) {
+                    Log.i(LOG_TAG, "Address seen already: " + deviceAddress + " New distance: " + distance);
+                    beaconCache.addReceivedBroadcast(hashOfUUIDCached, distance);
+                } else {
+                    Log.i(LOG_TAG, "Address not seen yet: " + deviceAddress + " Distance: " + distance);
+                    BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
+                        @Override
+                        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+                            Log.i(LOG_TAG, "State changed to " + newState);
+                            if (newState == BluetoothGatt.STATE_CONNECTED) {
+                                gatt.discoverServices();
+
+                            }
                         }
-                    }
 
-                    @Override
-                    public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-                        Log.i(LOG_TAG, "Read characteristic: " + bytesToHex(characteristic.getValue()));
-                        beaconCache.addReceivedBroadcast(characteristic.getValue(), distance);
-                        gatt.close();
-                    }
-
-                    @Override
-                    public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-                        BluetoothGattCharacteristic characteristic = gatt.getService(BandemicProfile.BANDEMIC_SERVICE).getCharacteristic(BandemicProfile.HASH_OF_UUID);
-                        if (characteristic != null) {
-                            gatt.readCharacteristic(characteristic);
-                        } else {
-                            Log.e(LOG_TAG, "Did not find expected characteristic");
-                            gatt.close();
+                        @Override
+                        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+                            Log.i(LOG_TAG, "Characteristic read " + characteristic.getUuid());
+                            if (characteristic.getUuid().compareTo(BandemicProfile.HASH_OF_UUID) == 0) {
+                                byte[] hashOfUUID = characteristic.getValue();
+                                Log.i(LOG_TAG, "Read hash of uuid characteristic: " + bytesToHex(hashOfUUID));
+                                macAddressCache.put(deviceAddress, hashOfUUID);
+                                beaconCache.addReceivedBroadcast(hashOfUUID, distance);
+                                gatt.close();
+                            }
                         }
-                    }
-                };
-                device.connectGatt(context, false, gattCallback);
+
+                        @Override
+                        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+                            Log.i(LOG_TAG, "Services Discovered");
+                            BluetoothGattCharacteristic characteristic = gatt.getService(BandemicProfile.BANDEMIC_SERVICE).getCharacteristic(BandemicProfile.HASH_OF_UUID);
+                            if (characteristic != null) {
+                                Log.i(LOG_TAG, "Read characteristic...");
+                                gatt.readCharacteristic(characteristic);
+                            } else {
+                                Log.i(LOG_TAG, "=============================");
+                                Log.e(LOG_TAG, "Did not find expected characteristic");
+                                Log.i(LOG_TAG, "Found these instead:");
+                                for (BluetoothGattService service : gatt.getServices()) {
+                                    Log.i(LOG_TAG, "Service: " + service.getUuid());
+                                    for (BluetoothGattCharacteristic gattCharacteristic : service.getCharacteristics()) {
+                                        Log.i(LOG_TAG, "    Characteristic: " + gattCharacteristic.getUuid());
+                                    }
+                                }
+                                Log.i(LOG_TAG, "=============================");
+                                gatt.close();
+                            }
+                        }
+                    };
+                    device.connectGatt(context, false, gattCallback);
+                }
+
             }
         };
-        bluetoothAdapter.startLeScan(uuids, callback);
+
+        ScanSettings.Builder settingsBuilder = new ScanSettings.Builder()
+                .setScanMode(ScanSettings.SCAN_MODE_BALANCED)
+                .setReportDelay(0);
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            settingsBuilder.setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
+                    .setNumOfMatches(ScanSettings.MATCH_NUM_MAX_ADVERTISEMENT)
+                    .setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            settingsBuilder.setLegacy(true);
+        }
+
+        bluetoothLeScanner.startScan(Collections.singletonList(filter), settingsBuilder.build(), bluetoothScanCallback);
     }
 
     public void stopScanning() {
         Log.d(LOG_TAG, "Stopping scanning");
 
-        if (callback != null) {
-            bluetoothAdapter.stopLeScan(callback);
+        if (bluetoothScanCallback != null) {
+            bluetoothLeScanner.stopScan(bluetoothScanCallback);
         }
+
     }
 }
