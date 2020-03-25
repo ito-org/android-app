@@ -1,101 +1,90 @@
 package app.bandemic.strict.service;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.le.BluetoothLeScanner;
-import android.bluetooth.le.ScanCallback;
-import android.bluetooth.le.ScanFilter;
-import android.bluetooth.le.ScanRecord;
-import android.bluetooth.le.ScanResult;
-import android.bluetooth.le.ScanSettings;
-import android.os.Build;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.content.Context;
 import android.util.Log;
 
-import app.bandemic.strict.database.Beacon;
-import app.bandemic.strict.repository.BroadcastRepository;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-
-import static app.bandemic.strict.service.TracingService.BLUETOOTH_SIG;
-import static app.bandemic.strict.service.TracingService.BROADCAST_LENGTH;
-import static app.bandemic.strict.service.TracingService.HASH_LENGTH;
+import java.util.UUID;
 
 public class BleScanner {
     private static final String LOG_TAG = "BleScanner";
 
-    private BluetoothLeScanner bluetoothLeScanner;
-    private ScanCallback bluetoothScanCallback;
+    private BluetoothAdapter bluetoothAdapter;
     private BeaconCache beaconCache;
+    private BluetoothAdapter.LeScanCallback callback;
+    private Context context;
 
-    public BleScanner(BluetoothAdapter bluetoothAdapter, BeaconCache beaconCache) {
-        bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
+    public BleScanner(BluetoothAdapter bluetoothAdapter, BeaconCache beaconCache, Context context) {
+        this.bluetoothAdapter = bluetoothAdapter;
         this.beaconCache = beaconCache;
+        this.context = context;
+    }
+
+    private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
+    public static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for (int j = 0; j < bytes.length; j++) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+        }
+        return new String(hexChars);
     }
 
     public void startScanning() {
         Log.d(LOG_TAG, "Starting scan");
-        bluetoothScanCallback = new ScanCallback() {
-            public void onScanResult(int callbackType, ScanResult result) {
 
-                Log.d(LOG_TAG, "onScanResult");
-
-                ScanRecord record = result.getScanRecord();
-
-                // if there is no record, discard this packet
-                if (record == null) {
-                    return;
-                }
-
-                byte[] receivedHash = record.getManufacturerSpecificData(BLUETOOTH_SIG);
-
-                // if there is no data, discard
-                if (receivedHash == null) {
-                    return;
-                }
-
-                byte txPower = receivedHash[HASH_LENGTH];
-                receivedHash = Arrays.copyOf(receivedHash, HASH_LENGTH);
-
-                int rssi = result.getRssi();
-
-                // TODO take antenna attenuation into account
+        UUID[] uuids = {BandemicProfile.BANDEMIC_SERVICE};
+        callback = new BluetoothAdapter.LeScanCallback() {
+            @Override
+            public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+                Log.i(LOG_TAG, "Found device with rssi " + rssi);
+                int txPower = 0; //TODO
                 double distance = Math.pow(10d, ((double) txPower - rssi) / (10 * 2));
+                BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
+                    @Override
+                    public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+                        Log.i(LOG_TAG, "State changed to " + newState);
+                        if (newState == BluetoothGatt.STATE_CONNECTED) {
+                            Log.i(LOG_TAG, "Connected, read characterisic ...");
+                            gatt.discoverServices();
 
-                Log.d(LOG_TAG, Arrays.toString(receivedHash) + ":" + distance);
+                        }
+                    }
 
-                beaconCache.addReceivedBroadcast(receivedHash, distance);
+                    @Override
+                    public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+                        Log.i(LOG_TAG, "Read characteristic: " + bytesToHex(characteristic.getValue()));
+                        beaconCache.addReceivedBroadcast(characteristic.getValue(), distance);
+                        gatt.close();
+                    }
+
+                    @Override
+                    public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+                        BluetoothGattCharacteristic characteristic = gatt.getService(BandemicProfile.BANDEMIC_SERVICE).getCharacteristic(BandemicProfile.HASH_OF_UUID);
+                        if (characteristic != null) {
+                            gatt.readCharacteristic(characteristic);
+                        } else {
+                            Log.e(LOG_TAG, "Did not find expected characteristic");
+                            gatt.close();
+                        }
+                    }
+                };
+                device.connectGatt(context, false, gattCallback);
             }
         };
-
-        ScanSettings.Builder settingsBuilder = new ScanSettings.Builder()
-                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-                .setReportDelay(0);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            settingsBuilder.setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
-                    .setNumOfMatches(ScanSettings.MATCH_NUM_MAX_ADVERTISEMENT)
-                    .setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE);
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            settingsBuilder.setLegacy(true);
-        }
-
-        byte[] manufacturerDataMask = new byte[BROADCAST_LENGTH];
-
-        ScanFilter filter = new ScanFilter.Builder()
-                .setManufacturerData(BLUETOOTH_SIG, manufacturerDataMask, manufacturerDataMask)
-                .build();
-
-        bluetoothLeScanner.startScan(Collections.singletonList(filter), settingsBuilder.build(), bluetoothScanCallback);
+        bluetoothAdapter.startLeScan(uuids, callback);
     }
 
     public void stopScanning() {
         Log.d(LOG_TAG, "Stopping scanning");
-        if(bluetoothScanCallback != null) {
-            bluetoothLeScanner.stopScan(bluetoothScanCallback);
-            bluetoothScanCallback = null;
+
+        if (callback != null) {
+            bluetoothAdapter.stopLeScan(callback);
         }
     }
 }

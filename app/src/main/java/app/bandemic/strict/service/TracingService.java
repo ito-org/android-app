@@ -102,8 +102,8 @@ public class TracingService extends Service {
         BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
 
         beaconCache = new BeaconCache(broadcastRepository, serviceHandler);
-        bleScanner = new BleScanner(bluetoothAdapter, beaconCache);
-        bleAdvertiser = new BleAdvertiser(bluetoothAdapter, serviceHandler);
+        bleScanner = new BleScanner(bluetoothAdapter, beaconCache, this);
+        bleAdvertiser = new BleAdvertiser(bluetoothManager, this);
 
         regenerateUUID.run();
         bleAdvertiser.startAdvertising();
