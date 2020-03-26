@@ -10,14 +10,10 @@ import android.bluetooth.le.ScanSettings;
 import android.os.Build;
 import android.util.Log;
 
-import app.bandemic.strict.database.Beacon;
-import app.bandemic.strict.repository.BroadcastRepository;
-
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 
-import static app.bandemic.strict.service.TracingService.BLUETOOTH_SIG;
+import static app.bandemic.strict.service.TracingService.BLUETOOTH_COMPANY_ID;
 import static app.bandemic.strict.service.TracingService.BROADCAST_LENGTH;
 import static app.bandemic.strict.service.TracingService.HASH_LENGTH;
 
@@ -47,7 +43,7 @@ public class BleScanner {
                     return;
                 }
 
-                byte[] receivedHash = record.getManufacturerSpecificData(BLUETOOTH_SIG);
+                byte[] receivedHash = record.getManufacturerSpecificData(BLUETOOTH_COMPANY_ID);
 
                 // if there is no data, discard
                 if (receivedHash == null) {
@@ -85,7 +81,7 @@ public class BleScanner {
         byte[] manufacturerDataMask = new byte[BROADCAST_LENGTH];
 
         ScanFilter filter = new ScanFilter.Builder()
-                .setManufacturerData(BLUETOOTH_SIG, manufacturerDataMask, manufacturerDataMask)
+                .setManufacturerData(BLUETOOTH_COMPANY_ID, manufacturerDataMask, manufacturerDataMask)
                 .build();
 
         bluetoothLeScanner.startScan(Collections.singletonList(filter), settingsBuilder.build(), bluetoothScanCallback);

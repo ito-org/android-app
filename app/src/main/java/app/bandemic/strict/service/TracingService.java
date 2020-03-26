@@ -37,7 +37,7 @@ public class TracingService extends Service {
     private static final String DEFAULT_NOTIFICATION_CHANNEL = "ContactTracing";
     private static final int NOTIFICATION_ID = 1;
 
-    public static final int BLUETOOTH_SIG = 2220;
+    public static final int BLUETOOTH_COMPANY_ID = 65535; // TODO get a real company ID!
     public static final int HASH_LENGTH = 26;
     public static final int BROADCAST_LENGTH = HASH_LENGTH + 1;
     private static final int UUID_VALID_TIME = 1000 * 60 * 30; //ms * sec * 30 min

@@ -8,7 +8,7 @@ import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.os.Handler;
 import android.util.Log;
 
-import static app.bandemic.strict.service.TracingService.BLUETOOTH_SIG;
+import static app.bandemic.strict.service.TracingService.BLUETOOTH_COMPANY_ID;
 
 public class BleAdvertiser {
     private static final String LOG_TAG = "BleAdvertiser";
@@ -47,7 +47,7 @@ public class BleAdvertiser {
         AdvertiseData data = new AdvertiseData.Builder()
                 .setIncludeTxPowerLevel(false)
                 .setIncludeDeviceName(false)
-                .addManufacturerData(BLUETOOTH_SIG, broadcastData)
+                .addManufacturerData(BLUETOOTH_COMPANY_ID, broadcastData)
                 .build();
 
         bluetoothAdvertiseCallback = new AdvertiseCallback() {
