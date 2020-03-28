@@ -28,9 +28,10 @@ public class BleAdvertiser {
     private AdvertiseCallback bluetoothAdvertiseCallback;
     private BluetoothGattServer mBluetoothGattServer;
     private BluetoothManager bluetoothManager;
+    private final BluetoothAdapter bluetoothAdapter;
 
     public BleAdvertiser(BluetoothManager bluetoothManager, Context context) {
-        BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
+        bluetoothAdapter = bluetoothManager.getAdapter();
         this.bluetoothLeAdvertiser = bluetoothAdapter.getBluetoothLeAdvertiser();
         this.bluetoothManager = bluetoothManager;
         this.context = context;
@@ -80,6 +81,12 @@ public class BleAdvertiser {
                 // TODO
             }
         };
+
+
+        //Set fixed device name to avoid being recognizable except though UUID
+        //Name is not sent in advertisement anyway but can be requested though GATT Server
+        //and I don't see any way to disable that
+        bluetoothAdapter.setName("Phone");
 
         // TODO: check if null when launching with Bluetooth disabled
         bluetoothLeAdvertiser.startAdvertising(settings, data, bluetoothAdvertiseCallback);
