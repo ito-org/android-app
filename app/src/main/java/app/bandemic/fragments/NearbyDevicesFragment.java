@@ -18,18 +18,22 @@ import androidx.dynamicanimation.animation.DynamicAnimation;
 import androidx.dynamicanimation.animation.SpringAnimation;
 import androidx.dynamicanimation.animation.SpringForce;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import app.bandemic.R;
+import app.bandemic.viewmodel.NearbyDevicesViewModel;
 
 public class NearbyDevicesFragment extends Fragment {
 
     private RelativeLayout layout;
 
     private List<NearbyDeviceView> nearbyDeviceViews = new ArrayList<>();
+    private NearbyDevicesViewModel model;
 
 
     @Override
@@ -42,7 +46,13 @@ public class NearbyDevicesFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        model = new ViewModelProvider(this).get(NearbyDevicesViewModel.class);
         layout = view.findViewById(R.id.layout);
+
+        updateDevicePositions(Objects.requireNonNull(model.distances.getValue()), false);
+        model.distances.observe(getViewLifecycleOwner(), distances -> {
+            updateDevicePositions(distances, true);
+        });
     }
 
     private class NearbyDeviceView {
@@ -85,7 +95,7 @@ public class NearbyDevicesFragment extends Fragment {
         }
     }
 
-    private void updateDevicePositions(double[] distances) {
+    private void updateDevicePositions(double[] distances, boolean animate) {
         if (nearbyDeviceViews.size() < distances.length) {
             addNearbyDevice();
         }
@@ -108,6 +118,10 @@ public class NearbyDevicesFragment extends Fragment {
             NearbyDeviceView ndv = nearbyDeviceViews.get(i);
             ndv.animX.animateToFinalPosition((float) left);
             ndv.animY.animateToFinalPosition((float) top);
+            if (!animate) {
+                ndv.animX.skipToEnd();
+                ndv.animY.skipToEnd();
+            }
         }
     }
 
@@ -124,12 +138,14 @@ public class NearbyDevicesFragment extends Fragment {
                 new IntentFilter("nearby-devices"));
     }
 
+    //TODO we might miss notifications while we are paused so on resume we should somehow get the current state
+    //TODO we should not only send distances but also uuid so that we can update the correct device in the animation
     private BroadcastReceiver nearbyDevicesBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             double[] distances = intent.getDoubleArrayExtra("distances");
 
-            updateDevicePositions(distances);
+            model.distances.setValue(distances);
         }
     };
 
