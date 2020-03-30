@@ -59,7 +59,4 @@
     <string name="instructions_turn_on_bluetooth">Bluetooth anschalten.</string>
     <string name="instructions_nearby">Dein Gerät erfasst nun alle Geräte, die sich in deiner Nähe befinden.</string>
     <string name="instructions_infected">Wenn jemand infiziert wurde den du getroffen hast, erhälst du eine Benachrichtigung mit einer Handlungsempfehlung.</string>
-    <string name="n_devices_nearby">%1$d devices nearby</string>
-    <string name="device_in_distance">Device in %1$f m distance</string>
-    <string name="devices_currently_nearby">Devices currently nearby</string>
 </resources>
