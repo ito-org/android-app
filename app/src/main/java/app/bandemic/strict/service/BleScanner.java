@@ -68,7 +68,7 @@ public class BleScanner {
                 }
 
                 //TODO The values here seem wrong
-                int txPower = record.getTxPowerLevel();
+                int txPower = -65;//record.getTxPowerLevel();
                 int rssi = result.getRssi();
 
                 BluetoothDevice device = result.getDevice();

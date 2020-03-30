@@ -61,6 +61,12 @@
             <androidx.fragment.app.FragmentContainerView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:name="app.bandemic.fragments.NearbyDevicesFragment"
+                android:id="@+id/fragment_nearby_devices"/>
+
+            <androidx.fragment.app.FragmentContainerView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:name="app.bandemic.fragments.EnvironmentLoggerFragment"
                 android:id="@+id/fragment_environment_logger"/>
         </LinearLayout>

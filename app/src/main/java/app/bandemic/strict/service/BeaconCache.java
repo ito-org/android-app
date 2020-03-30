@@ -5,8 +5,10 @@ import android.util.Log;
 
 import androidx.collection.CircularArray;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 import app.bandemic.strict.database.Beacon;
 import app.bandemic.strict.repository.BroadcastRepository;
@@ -21,6 +23,12 @@ public class BeaconCache {
     private Handler serviceHandler;
     private HashMap<ByteString, CacheEntry> cache = new HashMap<>();
 
+    public List<NearbyDevicesListener> nearbyDevicesListeners = new ArrayList<>();
+
+    public interface NearbyDevicesListener {
+        void onNearbyDevicesChanged(double[] distances);
+    }
+
     public BeaconCache(BroadcastRepository broadcastRepository, Handler serviceHandler) {
         this.broadcastRepository = broadcastRepository;
         this.serviceHandler = serviceHandler;
@@ -29,14 +37,6 @@ public class BeaconCache {
     private void flush(ByteString hash) {
         Log.d(LOG_TAG, "Flushing distance to DB");
         CacheEntry entry = cache.get(hash);
-        CircularArray<Double> distances = entry.distances;
-        double avg = 0;
-        for (int i = 0; i < distances.size(); i++) {
-            avg += distances.get(i) / distances.size();
-        }
-        if (avg < entry.lowestDistance) {
-            entry.lowestDistance = avg;
-        }
         insertIntoDB(entry.hash, entry.lowestDistance, entry.firstReceived, entry.lastReceived - entry.firstReceived);
         cache.remove(hash);
     }
@@ -70,16 +70,29 @@ public class BeaconCache {
         if (distances.size() == MOVING_AVERAGE_LENGTH) {
 
             //calculate moving average
-            double avg = 0;
-            for (int i = 0; i < MOVING_AVERAGE_LENGTH; i++) {
-                avg += distances.get(i) / MOVING_AVERAGE_LENGTH;
-            }
+            double avg = entry.getAverageDistance();
             if (avg < entry.lowestDistance) {
                 //insert new lowest value to DB
                 entry.lowestDistance = avg;
                 //insertIntoDB(hash, avg);
             }
             distances.popLast();
+        }
+
+        sendNearbyDevices();
+
+    }
+
+    private void sendNearbyDevices() {
+        double[] nearbyDevices = new double[cache.size()];
+        int i = 0;
+        for (CacheEntry entry : cache.values()) {
+            nearbyDevices[i] = entry.getAverageDistance();
+            i++;
+        }
+
+        for (NearbyDevicesListener listener : nearbyDevicesListeners) {
+            listener.onNearbyDevicesChanged(nearbyDevices);
         }
     }
 
@@ -99,5 +112,13 @@ public class BeaconCache {
         CircularArray<Double> distances = new CircularArray<>(MOVING_AVERAGE_LENGTH);
         double lowestDistance = Double.MAX_VALUE;
         Runnable flushRunnable = () -> flush(ByteString.of(hash));
+
+        double getAverageDistance() {
+            double avg = 0;
+            for (int i = 0; i < distances.size(); i++) {
+                avg += distances.get(i) / distances.size();
+            }
+            return avg;
+        }
     }
 }

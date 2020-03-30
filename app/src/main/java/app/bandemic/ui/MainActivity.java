@@ -1,24 +1,28 @@
 package app.bandemic.ui;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
-
-import androidx.preference.PreferenceManager;
-import app.bandemic.R;
-import app.bandemic.strict.database.AppDatabase;
-import app.bandemic.strict.service.TracingService;
-import app.bandemic.viewmodel.MainActivityViewModel;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import app.bandemic.R;
+import app.bandemic.strict.service.BeaconCache;
+import app.bandemic.strict.service.TracingService;
+import app.bandemic.viewmodel.MainActivityViewModel;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -87,4 +91,10 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
 }

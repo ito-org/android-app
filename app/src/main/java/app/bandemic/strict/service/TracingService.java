@@ -19,6 +19,7 @@ import android.os.Looper;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import app.bandemic.ui.MainActivity;
 import app.bandemic.R;
@@ -102,6 +103,12 @@ public class TracingService extends Service {
         BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
 
         beaconCache = new BeaconCache(broadcastRepository, serviceHandler);
+        beaconCache.nearbyDevicesListeners.add(new BeaconCache.NearbyDevicesListener() {
+            @Override
+            public void onNearbyDevicesChanged(double[] distances) {
+                sendNearbyDevices(distances);
+            }
+        });
         bleScanner = new BleScanner(bluetoothAdapter, beaconCache, this);
         bleAdvertiser = new BleAdvertiser(bluetoothManager, this);
 
@@ -145,6 +152,12 @@ public class TracingService extends Service {
         startForeground(NOTIFICATION_ID, notification);
     }
 
+    private void sendNearbyDevices(double[] distances) {
+        Intent intent = new Intent("nearby-devices");
+        intent.putExtra("distances", distances);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
     @Override
     public void onDestroy() {
         bleAdvertiser.stopAdvertising();
@@ -159,9 +172,6 @@ public class TracingService extends Service {
         return START_STICKY;
     }
 
-    /*
-    Don't do anything here, because the service doesn't have to communicate to other apps
-     */
     @Override
     public IBinder onBind(Intent intent) {
         return null;

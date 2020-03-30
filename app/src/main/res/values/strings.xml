@@ -58,4 +58,7 @@
     <string name="instructions_turn_on_bluetooth">Turn on bluetooth</string>
     <string name="instructions_nearby">Your device will trace other devices in your vicinity</string>
     <string name="instructions_infected">When somebody gets infected that you met, you\'ll get a notification with further instructions</string>
+    <string name="n_devices_nearby">%1$d devices nearby</string>
+    <string name="device_in_distance">Device in %1$f m distance</string>
+    <string name="devices_currently_nearby">Devices currently nearby</string>
 </resources>
