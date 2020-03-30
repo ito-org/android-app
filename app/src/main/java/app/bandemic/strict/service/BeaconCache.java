@@ -84,16 +84,21 @@ public class BeaconCache {
     }
 
     private void sendNearbyDevices() {
+        double[] nearbyDevices = getNearbyDevices();
+
+        for (NearbyDevicesListener listener : nearbyDevicesListeners) {
+            listener.onNearbyDevicesChanged(nearbyDevices);
+        }
+    }
+
+    public double[] getNearbyDevices() {
         double[] nearbyDevices = new double[cache.size()];
         int i = 0;
         for (CacheEntry entry : cache.values()) {
             nearbyDevices[i] = entry.getAverageDistance();
             i++;
         }
-
-        for (NearbyDevicesListener listener : nearbyDevicesListeners) {
-            listener.onNearbyDevicesChanged(nearbyDevices);
-        }
+        return nearbyDevices;
     }
 
     private void insertIntoDB(byte[] hash, double distance, long startTime, long duration) {

@@ -1,35 +1,39 @@
 package app.bandemic.ui;
 
 import android.Manifest;
-import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import app.bandemic.R;
+import app.bandemic.fragments.NearbyDevicesFragment;
 import app.bandemic.strict.service.BeaconCache;
 import app.bandemic.strict.service.TracingService;
 import app.bandemic.viewmodel.MainActivityViewModel;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = "MainActivity";
     private final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     public static final String PREFERENCE_DATA_OK = "data_ok";
 
     private MainActivityViewModel mViewModel;
+    private NearbyDevicesFragment nearbyDevicesFragment;
+    private TracingService.TracingServiceBinder serviceBinder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +55,8 @@ public class MainActivity extends AppCompatActivity {
         if(!sharedPref.getBoolean(PREFERENCE_DATA_OK, false)) {
             startActivity(new Intent(this, Instructions.class));
         }
+
+        nearbyDevicesFragment = (NearbyDevicesFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_nearby_devices);
     }
 
     private void checkPermissions() {
@@ -69,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
     private void startTracingService() {
         Intent intent = new Intent(this, TracingService.class);
         startService(intent);
+        bindService(intent, connection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -92,9 +99,41 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    BeaconCache.NearbyDevicesListener nearbyDevicesListener = new BeaconCache.NearbyDevicesListener() {
+        @Override
+        public void onNearbyDevicesChanged(double[] distances) {
+            runOnUiThread(() -> {
+                nearbyDevicesFragment.model.distances.setValue(distances);
+            });
+        }
+    };
+
     @Override
     protected void onStop() {
+        serviceBinder.removeNearbyDevicesListener(nearbyDevicesListener);
+        unbindService(connection);
         super.onStop();
     }
+
+    private ServiceConnection connection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            Log.i(TAG, "Service connected");
+            serviceBinder = (TracingService.TracingServiceBinder) service;
+            serviceBinder.addNearbyDevicesListener(nearbyDevicesListener);
+            runOnUiThread(() -> {
+                // Get nearby devices once in case we missed some updates
+                nearbyDevicesFragment.model.distances.setValue(serviceBinder.getNearbyDevices());
+                nearbyDevicesFragment.skipAnimations();
+            });
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            Log.i(TAG, "Service disconnected");
+            serviceBinder = null;
+        }
+    };
 
 }

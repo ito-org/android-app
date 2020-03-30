@@ -11,6 +11,7 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -19,12 +20,6 @@ import android.os.Looper;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import app.bandemic.ui.MainActivity;
-import app.bandemic.R;
-import app.bandemic.strict.database.OwnUUID;
-import app.bandemic.strict.repository.BroadcastRepository;
 
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
@@ -32,6 +27,11 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
+
+import app.bandemic.R;
+import app.bandemic.strict.database.OwnUUID;
+import app.bandemic.strict.repository.BroadcastRepository;
+import app.bandemic.ui.MainActivity;
 
 public class TracingService extends Service {
     private static final String LOG_TAG = "TracingService";
@@ -52,6 +52,22 @@ public class TracingService extends Service {
     private UUID currentUUID;
 
     private BroadcastRepository broadcastRepository;
+
+    private final IBinder mBinder = new TracingServiceBinder();
+
+    public class TracingServiceBinder extends Binder {
+        public double[] getNearbyDevices() {
+            return beaconCache.getNearbyDevices();
+        }
+
+        public void addNearbyDevicesListener(BeaconCache.NearbyDevicesListener listener) {
+            beaconCache.nearbyDevicesListeners.add(listener);
+        }
+
+        public void removeNearbyDevicesListener(BeaconCache.NearbyDevicesListener listener) {
+            beaconCache.nearbyDevicesListeners.remove(listener);
+        }
+    }
 
     private Runnable regenerateUUID = () -> {
         Log.i(LOG_TAG, "Regenerating UUID");
@@ -103,12 +119,6 @@ public class TracingService extends Service {
         BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
 
         beaconCache = new BeaconCache(broadcastRepository, serviceHandler);
-        beaconCache.nearbyDevicesListeners.add(new BeaconCache.NearbyDevicesListener() {
-            @Override
-            public void onNearbyDevicesChanged(double[] distances) {
-                sendNearbyDevices(distances);
-            }
-        });
         bleScanner = new BleScanner(bluetoothAdapter, beaconCache, this);
         bleAdvertiser = new BleAdvertiser(bluetoothManager, this);
 
@@ -152,12 +162,6 @@ public class TracingService extends Service {
         startForeground(NOTIFICATION_ID, notification);
     }
 
-    private void sendNearbyDevices(double[] distances) {
-        Intent intent = new Intent("nearby-devices");
-        intent.putExtra("distances", distances);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-    }
-
     @Override
     public void onDestroy() {
         bleAdvertiser.stopAdvertising();
@@ -174,6 +178,6 @@ public class TracingService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return mBinder;
     }
 }
