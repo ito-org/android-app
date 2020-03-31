@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="300dp"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context="app.bandemic.fragments.EnvironmentLoggerFragment"
-    android:id="@+id/layout" >
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout"
+    android:layout_width="match_parent"
+    android:layout_height="220dp"
+    tools:context="app.bandemic.fragments.EnvironmentLoggerFragment">
 
     <ImageView
+        android:id="@+id/nearby_device_myself"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/nearby_device"
-        android:layout_marginTop="150dp"
         android:layout_centerHorizontal="true"
-        android:id="@+id/nearby_device_myself" />
+        android:layout_marginTop="150dp"
+        android:src="@drawable/nearby_device" />
 
 </RelativeLayout>

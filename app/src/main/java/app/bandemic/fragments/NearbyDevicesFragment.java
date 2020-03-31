@@ -1,7 +1,12 @@
 package app.bandemic.fragments;
 
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,6 +55,27 @@ public class NearbyDevicesFragment extends Fragment {
         model.distances.observe(getViewLifecycleOwner(), distances -> {
             updateDevicePositions(distances);
         });
+
+        ImageView iv = (ImageView) view.findViewById(R.id.nearby_device_myself);
+        ObjectAnimator pulseAnim = ObjectAnimator.ofPropertyValuesHolder(
+                iv,
+                PropertyValuesHolder.ofFloat("scaleX", 1.0f, 1.3f, 1.0f, 1.2f, 1.0f),
+                PropertyValuesHolder.ofFloat("scaleY", 1.0f, 1.3f, 1.0f, 1.2f, 1.0f));
+        pulseAnim.setDuration(600);
+        Handler handler = new Handler();
+        pulseAnim.addListener(new AnimatorListenerAdapter(){
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        pulseAnim.start();
+                    }
+                }, 1500);
+            }
+        });
+        pulseAnim.start();
+
     }
 
     private class NearbyDeviceView {
