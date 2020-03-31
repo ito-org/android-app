@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -34,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private MainActivityViewModel mViewModel;
     private NearbyDevicesFragment nearbyDevicesFragment;
     private TracingService.TracingServiceBinder serviceBinder;
+    private TracingService.ServiceStatusListener serviceStatusListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         serviceBinder.removeNearbyDevicesListener(nearbyDevicesListener);
+        serviceBinder.removeServiceStatusListener(serviceStatusListener);
         unbindService(connection);
         super.onStop();
     }
@@ -127,6 +130,28 @@ public class MainActivity extends AppCompatActivity {
                 nearbyDevicesFragment.model.distances.setValue(serviceBinder.getNearbyDevices());
                 nearbyDevicesFragment.skipAnimations();
             });
+
+            serviceStatusListener = serviceStatus -> {
+                Log.i(TAG, "Service status: " + serviceStatus);
+                runOnUiThread(() -> {
+                    switch (serviceStatus) {
+                        case TracingService.STATUS_BLUETOOTH_NOT_ENABLED:
+                            Toast toast = Toast.makeText(MainActivity.this, "Bluetooth needs to be enabled", Toast.LENGTH_LONG);
+                            toast.show();
+                            break;
+                        case TracingService.STATUS_LOCATION_NOT_ENABLED:
+                            Toast toast2 = Toast.makeText(MainActivity.this, "Location needs to be enabled", Toast.LENGTH_LONG);
+                            toast2.show();
+                            break;
+                        case TracingService.STATUS_RUNNING:
+                            Toast toast3 = Toast.makeText(MainActivity.this, "Service running", Toast.LENGTH_SHORT);
+                            toast3.show();
+                            break;
+                    }
+                });
+            };
+            serviceBinder.addServiceStatusListener(serviceStatusListener);
+            serviceStatusListener.serviceStatusChanged(serviceBinder.getServiceStatus());
         }
 
         @Override

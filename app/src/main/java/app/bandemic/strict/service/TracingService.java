@@ -8,9 +8,13 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
+import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
@@ -24,8 +28,10 @@ import androidx.core.app.NotificationCompat;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import app.bandemic.R;
@@ -55,7 +61,26 @@ public class TracingService extends Service {
 
     private final IBinder mBinder = new TracingServiceBinder();
 
+    public static final int STATUS_RUNNING = 0;
+    public static final int STATUS_STARTING = 1;
+    public static final int STATUS_BLUETOOTH_NOT_ENABLED = 2;
+    public static final int STATUS_LOCATION_NOT_ENABLED = 3;
+
+    private int serviceStatus = STATUS_STARTING;
+
     public class TracingServiceBinder extends Binder {
+        public int getServiceStatus() {
+            return serviceStatus;
+        }
+
+        public void addServiceStatusListener(ServiceStatusListener listener) {
+            serviceStatusListeners.add(listener);
+        }
+
+        public void removeServiceStatusListener(ServiceStatusListener listener) {
+            serviceStatusListeners.remove(listener);
+        }
+
         public double[] getNearbyDevices() {
             return beaconCache.getNearbyDevices();
         }
@@ -66,6 +91,18 @@ public class TracingService extends Service {
 
         public void removeNearbyDevicesListener(BeaconCache.NearbyDevicesListener listener) {
             beaconCache.nearbyDevicesListeners.remove(listener);
+        }
+    }
+
+    List<ServiceStatusListener> serviceStatusListeners = new ArrayList<>();
+    public interface ServiceStatusListener {
+        void serviceStatusChanged(int serviceStatus);
+    }
+
+    private void setServiceStatus(int serviceStatus) {
+        this.serviceStatus = serviceStatus;
+        for (ServiceStatusListener listener : serviceStatusListeners) {
+            listener.serviceStatusChanged(serviceStatus);
         }
     }
 
@@ -113,18 +150,12 @@ public class TracingService extends Service {
         // Get the HandlerThread's Looper and use it for our Handler
         serviceLooper = thread.getLooper();
         serviceHandler = new Handler(serviceLooper);
-
-        BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-        assert bluetoothManager != null;
-        BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
-
         beaconCache = new BeaconCache(broadcastRepository, serviceHandler);
-        bleScanner = new BleScanner(bluetoothAdapter, beaconCache, this);
-        bleAdvertiser = new BleAdvertiser(bluetoothManager, this);
 
-        regenerateUUID.run();
-        bleAdvertiser.startAdvertising();
-        bleScanner.startScanning();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        filter.addAction(LocationManager.MODE_CHANGED_ACTION);
+        registerReceiver(stateReceiver, filter);
     }
 
     @TargetApi(26)
@@ -162,17 +193,91 @@ public class TracingService extends Service {
         startForeground(NOTIFICATION_ID, notification);
     }
 
+    void tryStartingBluetooth() {
+        Log.i(LOG_TAG, "Try starting bluetooth advertisement + scanning");
+        if (serviceStatus == STATUS_RUNNING) {
+            Log.i(LOG_TAG, "Bluetooth is already running");
+            return;
+        }
+
+        BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        assert bluetoothManager != null;
+        BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
+        if (!bluetoothAdapter.isEnabled()) {
+            Log.i(LOG_TAG, "Bluetooth not enabled");
+            setServiceStatus(STATUS_BLUETOOTH_NOT_ENABLED);
+            return;
+        }
+
+        LocationManager locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        assert locationManager != null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            //I have read this is not actually required on all devices, but I have not found a way
+            //to check if it is required.
+            //If location is not enabled the BLE scan fails silently (scan callback is never called)
+            if (!locationManager.isLocationEnabled()) {
+                Log.i(LOG_TAG, "Location not enabled (API>=P check)");
+                setServiceStatus(STATUS_LOCATION_NOT_ENABLED);
+                return;
+            }
+        } else {
+            //Not sure if this is the correct check, gps is not really required, but passive provider
+            //does not seem to be enough
+            if (!locationManager.getProviders(true).contains(LocationManager.GPS_PROVIDER)) {
+                Log.i(LOG_TAG, "Location not enabled (API<P check)");
+                setServiceStatus(STATUS_LOCATION_NOT_ENABLED);
+                return;
+            }
+        }
+
+
+
+
+        bleScanner = new BleScanner(bluetoothAdapter, beaconCache, this);
+        bleAdvertiser = new BleAdvertiser(bluetoothManager, this);
+
+        regenerateUUID.run();
+        bleAdvertiser.startAdvertising();
+        bleScanner.startScanning();
+        setServiceStatus(STATUS_RUNNING);
+    }
+
+    private final BroadcastReceiver stateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+
+            assert action != null;
+            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+                final int bluetoothState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+                if (bluetoothState == BluetoothAdapter.STATE_ON) {
+                    tryStartingBluetooth();
+                }
+            }
+
+            if (action.equals(LocationManager.MODE_CHANGED_ACTION)) {
+                tryStartingBluetooth();
+            }
+        }
+    };
+
     @Override
     public void onDestroy() {
-        bleAdvertiser.stopAdvertising();
-        bleScanner.stopScanning();
+        if (bleAdvertiser != null) {
+            bleAdvertiser.stopAdvertising();
+        }
+        if (bleScanner != null) {
+            bleScanner.stopScanning();
+        }
         beaconCache.flush();
+        unregisterReceiver(stateReceiver);
         super.onDestroy();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         runAsForgroundService();
+        tryStartingBluetooth();
         return START_STICKY;
     }
 
