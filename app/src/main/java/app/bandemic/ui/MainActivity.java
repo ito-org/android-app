@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -21,6 +20,7 @@ import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import app.bandemic.R;
+import app.bandemic.fragments.ErrorMessageFragment;
 import app.bandemic.fragments.NearbyDevicesFragment;
 import app.bandemic.strict.service.BeaconCache;
 import app.bandemic.strict.service.TracingService;
@@ -35,7 +35,6 @@ public class MainActivity extends AppCompatActivity {
     private MainActivityViewModel mViewModel;
     private NearbyDevicesFragment nearbyDevicesFragment;
     private TracingService.TracingServiceBinder serviceBinder;
-    private TracingService.ServiceStatusListener serviceStatusListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,8 +56,6 @@ public class MainActivity extends AppCompatActivity {
         if(!sharedPref.getBoolean(PREFERENCE_DATA_OK, false)) {
             startActivity(new Intent(this, Instructions.class));
         }
-
-        nearbyDevicesFragment = (NearbyDevicesFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_nearby_devices);
     }
 
     private void checkPermissions() {
@@ -101,11 +98,45 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private TracingService.ServiceStatusListener serviceStatusListener = serviceStatus -> {
+        Log.i(TAG, "Service status: " + serviceStatus);
+        runOnUiThread(() -> {
+            if (serviceStatus == TracingService.STATUS_RUNNING) {
+                if (nearbyDevicesFragment == null) {
+                    nearbyDevicesFragment = new NearbyDevicesFragment();
+                }
+                if (nearbyDevicesFragment.model != null) {
+                    nearbyDevicesFragment.model.distances.setValue(serviceBinder.getNearbyDevices());
+                }
+                nearbyDevicesFragment.skipAnimations();
+
+                getSupportFragmentManager().beginTransaction()
+                        .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
+                        .replace(R.id.fragment_nearby_devices, nearbyDevicesFragment)
+                        .commit();
+            } else {
+                String errorMessage = "";
+                if (serviceStatus == TracingService.STATUS_BLUETOOTH_NOT_ENABLED) {
+                    errorMessage = getString(R.string.error_bluetooth_not_enabled);
+                } else if (serviceStatus == TracingService.STATUS_LOCATION_NOT_ENABLED) {
+                    errorMessage = getString(R.string.error_location_not_enabled);
+                }
+                ErrorMessageFragment errorMessageFragment = ErrorMessageFragment.newInstance(errorMessage);
+                getSupportFragmentManager().beginTransaction()
+                        .setCustomAnimations(android.R.animator.fade_in, android.R.animator.fade_out)
+                        .replace(R.id.fragment_nearby_devices, errorMessageFragment)
+                        .commit();
+            }
+        });
+    };
+
     BeaconCache.NearbyDevicesListener nearbyDevicesListener = new BeaconCache.NearbyDevicesListener() {
         @Override
         public void onNearbyDevicesChanged(double[] distances) {
             runOnUiThread(() -> {
-                nearbyDevicesFragment.model.distances.setValue(distances);
+                if (nearbyDevicesFragment != null) {
+                    nearbyDevicesFragment.model.distances.setValue(distances);
+                }
             });
         }
     };
@@ -124,34 +155,11 @@ public class MainActivity extends AppCompatActivity {
         public void onServiceConnected(ComponentName className, IBinder service) {
             Log.i(TAG, "Service connected");
             serviceBinder = (TracingService.TracingServiceBinder) service;
-            serviceBinder.addNearbyDevicesListener(nearbyDevicesListener);
-            runOnUiThread(() -> {
-                // Get nearby devices once in case we missed some updates
-                nearbyDevicesFragment.model.distances.setValue(serviceBinder.getNearbyDevices());
-                nearbyDevicesFragment.skipAnimations();
-            });
 
-            serviceStatusListener = serviceStatus -> {
-                Log.i(TAG, "Service status: " + serviceStatus);
-                runOnUiThread(() -> {
-                    switch (serviceStatus) {
-                        case TracingService.STATUS_BLUETOOTH_NOT_ENABLED:
-                            Toast toast = Toast.makeText(MainActivity.this, "Bluetooth needs to be enabled", Toast.LENGTH_LONG);
-                            toast.show();
-                            break;
-                        case TracingService.STATUS_LOCATION_NOT_ENABLED:
-                            Toast toast2 = Toast.makeText(MainActivity.this, "Location needs to be enabled", Toast.LENGTH_LONG);
-                            toast2.show();
-                            break;
-                        case TracingService.STATUS_RUNNING:
-                            Toast toast3 = Toast.makeText(MainActivity.this, "Service running", Toast.LENGTH_SHORT);
-                            toast3.show();
-                            break;
-                    }
-                });
-            };
             serviceBinder.addServiceStatusListener(serviceStatusListener);
             serviceStatusListener.serviceStatusChanged(serviceBinder.getServiceStatus());
+
+            serviceBinder.addNearbyDevicesListener(nearbyDevicesListener);
         }
 
         @Override

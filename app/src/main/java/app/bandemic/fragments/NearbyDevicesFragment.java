@@ -14,7 +14,7 @@ import androidx.dynamicanimation.animation.DynamicAnimation;
 import androidx.dynamicanimation.animation.SpringAnimation;
 import androidx.dynamicanimation.animation.SpringForce;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,15 +41,13 @@ public class NearbyDevicesFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        model = new ViewModelProvider(this).get(NearbyDevicesViewModel.class);
+        model = ViewModelProviders.of(this).get(NearbyDevicesViewModel.class);
         layout = view.findViewById(R.id.layout);
 
         updateDevicePositions(Objects.requireNonNull(model.distances.getValue()));
         skipAnimations();
 
-        model.distances.observe(getViewLifecycleOwner(), distances -> {
-            updateDevicePositions(distances);
-        });
+        model.distances.observe(getViewLifecycleOwner(), this::updateDevicePositions);
     }
 
     private class NearbyDeviceView {

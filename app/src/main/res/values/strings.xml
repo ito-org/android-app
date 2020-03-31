@@ -58,4 +58,6 @@
     <string name="instructions_turn_on_bluetooth">Turn on bluetooth</string>
     <string name="instructions_nearby">Your device will trace other devices in your vicinity</string>
     <string name="instructions_infected">When somebody gets infected that you met, you\'ll get a notification with further instructions</string>
+    <string name="error_bluetooth_not_enabled">Bluetooth needs to be enabled to be able to scan for nearby devices</string>
+    <string name="error_location_not_enabled">Location access needs to be enabled to scan for nearby devices</string>
 </resources>

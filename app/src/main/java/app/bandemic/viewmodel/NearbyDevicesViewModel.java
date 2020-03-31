@@ -4,5 +4,5 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 public class NearbyDevicesViewModel extends ViewModel {
-    public MutableLiveData<double[]> distances = distances = new MutableLiveData<>(new double[0]);
+    public MutableLiveData<double[]> distances = new MutableLiveData<>(new double[0]);
 }

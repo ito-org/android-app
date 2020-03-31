@@ -59,4 +59,6 @@
     <string name="instructions_turn_on_bluetooth">Bluetooth anschalten.</string>
     <string name="instructions_nearby">Dein Gerät erfasst nun alle Geräte, die sich in deiner Nähe befinden.</string>
     <string name="instructions_infected">Wenn jemand infiziert wurde den du getroffen hast, erhälst du eine Benachrichtigung mit einer Handlungsempfehlung.</string>
+    <string name="error_bluetooth_not_enabled">Bluetooth muss aktiviert sein um nach Geräten in der Nähe suchen zu können</string>
+    <string name="error_location_not_enabled">Standortzugriff muss aktiviert sein um nach Geräten in der Nähe suchen zu können</string>
 </resources>

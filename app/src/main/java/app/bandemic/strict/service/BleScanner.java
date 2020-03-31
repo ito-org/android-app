@@ -24,6 +24,7 @@ import java.util.Collections;
 public class BleScanner {
     private static final String LOG_TAG = "BleScanner";
     private final BluetoothLeScanner bluetoothLeScanner;
+    private BluetoothAdapter bluetoothAdapter;
     private final BeaconCache beaconCache;
     private final Context context;
 
@@ -36,6 +37,7 @@ public class BleScanner {
     private LruCache<String, Long> connStartedTimeMap = new LruCache<>(100);
 
     public BleScanner(BluetoothAdapter bluetoothAdapter, BeaconCache beaconCache, Context context) {
+        this.bluetoothAdapter = bluetoothAdapter;
         this.bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
         this.beaconCache = beaconCache;
         this.context = context;
@@ -172,7 +174,7 @@ public class BleScanner {
     public void stopScanning() {
         Log.d(LOG_TAG, "Stopping scanning");
 
-        if (bluetoothScanCallback != null) {
+        if (bluetoothScanCallback != null && bluetoothAdapter.isEnabled()) {
             bluetoothLeScanner.stopScan(bluetoothScanCallback);
         }
 

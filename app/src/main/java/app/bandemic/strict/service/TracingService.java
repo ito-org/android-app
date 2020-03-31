@@ -132,6 +132,7 @@ public class TracingService extends Service {
 
         bleAdvertiser.setBroadcastData(broadcastData);
 
+        serviceHandler.removeCallbacks(this.regenerateUUID);
         serviceHandler.postDelayed(this.regenerateUUID, UUID_VALID_TIME);
     };
 
@@ -193,11 +194,29 @@ public class TracingService extends Service {
         startForeground(NOTIFICATION_ID, notification);
     }
 
+    void stopBluetooth() {
+        if (bleAdvertiser != null) {
+            bleAdvertiser.stopAdvertising();
+            bleAdvertiser = null;
+        }
+        if (bleScanner != null) {
+            bleScanner.stopScanning();
+            bleScanner = null;
+        }
+
+        //Stop regenerating UUIDs while bluetooth is not running
+        serviceHandler.removeCallbacks(this.regenerateUUID);
+    }
+
     void tryStartingBluetooth() {
         Log.i(LOG_TAG, "Try starting bluetooth advertisement + scanning");
         if (serviceStatus == STATUS_RUNNING) {
-            Log.i(LOG_TAG, "Bluetooth is already running");
-            return;
+            Log.i(LOG_TAG, "Bluetooth is already running, restarting");
+            //If bluetooth is already running, stop it again and try to restart
+            //This is done to check that bluetooth and location is enabled again and
+            //set an error state otherwise
+
+            stopBluetooth();
         }
 
         BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
@@ -230,13 +249,12 @@ public class TracingService extends Service {
             }
         }
 
-
-
-
         bleScanner = new BleScanner(bluetoothAdapter, beaconCache, this);
         bleAdvertiser = new BleAdvertiser(bluetoothManager, this);
 
+        //TODO this can lead to UUID being regenerated more often, do a check somewhere for that
         regenerateUUID.run();
+
         bleAdvertiser.startAdvertising();
         bleScanner.startScanning();
         setServiceStatus(STATUS_RUNNING);
@@ -250,7 +268,9 @@ public class TracingService extends Service {
             assert action != null;
             if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
                 final int bluetoothState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
-                if (bluetoothState == BluetoothAdapter.STATE_ON) {
+
+                //There are also TURNING_ON and TURNING_OFF states, skip those
+                if (bluetoothState == BluetoothAdapter.STATE_ON || bluetoothState == BluetoothAdapter.STATE_OFF) {
                     tryStartingBluetooth();
                 }
             }
@@ -263,12 +283,7 @@ public class TracingService extends Service {
 
     @Override
     public void onDestroy() {
-        if (bleAdvertiser != null) {
-            bleAdvertiser.stopAdvertising();
-        }
-        if (bleScanner != null) {
-            bleScanner.stopScanning();
-        }
+        stopBluetooth();
         beaconCache.flush();
         unregisterReceiver(stateReceiver);
         super.onDestroy();
