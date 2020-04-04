@@ -2,8 +2,8 @@ package app.bandemic.viewmodel;
 
 import android.app.Application;
 
-import app.bandemic.strict.database.Infection;
-import app.bandemic.strict.repository.InfectedUUIDRepository;
+import org.itoapp.strict.database.Infection;
+import org.itoapp.strict.repository.InfectedUUIDRepository;
 
 import java.util.List;
 

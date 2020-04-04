@@ -9,7 +9,7 @@ import android.widget.TextView;
 
 import app.bandemic.R;
 
-import app.bandemic.strict.database.Infection;
+import org.itoapp.strict.database.Infection;
 
 import java.util.Collections;
 import java.util.List;

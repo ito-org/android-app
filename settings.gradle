@@ -1,2 +1,3 @@
 rootProject.name='InfectionTracker'
 include ':app'
+include ':itoapp'

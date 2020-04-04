@@ -4,7 +4,6 @@ package app.bandemic.fragments;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
-import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -20,7 +19,7 @@ import androidx.cardview.widget.CardView;
 import android.widget.LinearLayout;
 
 import app.bandemic.R;
-import app.bandemic.strict.database.Beacon;
+import org.itoapp.strict.database.Beacon;
 import app.bandemic.ui.EnvironmentDevicesAdapter;
 import app.bandemic.viewmodel.EnvironmentLoggerViewModel;
 

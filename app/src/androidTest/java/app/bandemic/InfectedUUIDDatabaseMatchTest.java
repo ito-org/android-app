@@ -2,11 +2,11 @@ package app.bandemic;
 
 import android.content.Context;
 
-import app.bandemic.strict.database.AppDatabase;
-import app.bandemic.strict.database.Beacon;
-import app.bandemic.strict.database.BeaconDao;
-import app.bandemic.strict.database.InfectedUUID;
-import app.bandemic.strict.database.InfectedUUIDDao;
+import org.itoapp.strict.database.AppDatabase;
+import org.itoapp.strict.database.Beacon;
+import org.itoapp.strict.database.BeaconDao;
+import org.itoapp.strict.database.InfectedUUID;
+import org.itoapp.strict.database.InfectedUUIDDao;
 
 import org.apache.commons.codec.binary.Hex;
 import org.junit.After;
@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
-import java.util.UUID;
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule;
 import androidx.room.Room;

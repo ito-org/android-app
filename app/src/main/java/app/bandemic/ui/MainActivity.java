@@ -1,17 +1,24 @@
 package app.bandemic.ui;
 
 import android.Manifest;
-import android.content.Context;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.RemoteException;
+import android.util.Log;
 import android.view.View;
 
 import androidx.preference.PreferenceManager;
 import app.bandemic.R;
-import app.bandemic.strict.database.AppDatabase;
-import app.bandemic.strict.service.TracingService;
+
+import org.itoapp.DistanceCallback;
+import org.itoapp.TracingServiceInterface;
+import org.itoapp.strict.database.AppDatabase;
+import org.itoapp.strict.service.TracingService;
 import app.bandemic.viewmodel.MainActivityViewModel;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,6 +26,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -62,9 +71,32 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            try {
+                ((TracingServiceInterface)service).setDistanceCallback(new DistanceCallback.Stub() {
+                    @Override
+                    public void onDistanceMeasurements(float[] distance) throws RemoteException {
+                        Log.d("MainActivity", Arrays.toString(distance));
+                    }
+                });
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+    };
+
     private void startTracingService() {
         Intent intent = new Intent(this, TracingService.class);
         startService(intent);
+
+        bindService(intent, connection, BIND_ABOVE_CLIENT);
     }
 
     @Override

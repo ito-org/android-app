@@ -1,13 +1,12 @@
 package app.bandemic.ui;
 
-import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import app.bandemic.R;
-import app.bandemic.strict.database.Beacon;
+import org.itoapp.strict.database.Beacon;
 
 import java.text.SimpleDateFormat;
 import java.util.Collections;

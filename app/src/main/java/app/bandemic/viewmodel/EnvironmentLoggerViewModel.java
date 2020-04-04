@@ -2,8 +2,8 @@ package app.bandemic.viewmodel;
 
 import android.app.Application;
 
-import app.bandemic.strict.database.Beacon;
-import app.bandemic.strict.repository.BroadcastRepository;
+import org.itoapp.strict.database.Beacon;
+import org.itoapp.strict.repository.BroadcastRepository;
 
 import java.util.List;
 
