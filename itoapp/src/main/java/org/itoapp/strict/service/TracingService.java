@@ -16,7 +16,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
-import android.os.RemoteException;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
@@ -34,13 +33,12 @@ import java.util.Date;
 import java.util.UUID;
 
 public class TracingService extends Service {
-    private static final String LOG_TAG = "TracingService";
-    private static final String DEFAULT_NOTIFICATION_CHANNEL = "ContactTracing";
-    private static final int NOTIFICATION_ID = 1;
-
     public static final int BLUETOOTH_COMPANY_ID = 65535; // TODO get a real company ID!
     public static final int HASH_LENGTH = 26;
     public static final int BROADCAST_LENGTH = HASH_LENGTH + 1;
+    private static final String LOG_TAG = "TracingService";
+    private static final String DEFAULT_NOTIFICATION_CHANNEL = "ContactTracing";
+    private static final int NOTIFICATION_ID = 1;
     private static final int UUID_VALID_TIME = 1000 * 60 * 30; //ms * sec * 30 min
 
     private Looper serviceLooper;
@@ -48,11 +46,14 @@ public class TracingService extends Service {
     private BleScanner bleScanner;
     private BleAdvertiser bleAdvertiser;
     private BeaconCache beaconCache;
-
+    TracingServiceInterface.Stub binder = new TracingServiceInterface.Stub() {
+        @Override
+        public void setDistanceCallback(DistanceCallback distanceCallback) {
+            beaconCache.setDistanceCallback(distanceCallback);
+        }
+    };
     private UUID currentUUID;
-
     private BroadcastRepository broadcastRepository;
-
     private Runnable regenerateUUID = () -> {
         Log.i(LOG_TAG, "Regenerating UUID");
 
@@ -127,12 +128,19 @@ public class TracingService extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             createChannel(notificationManager);
 
-        Intent notificationIntent = null;
+        //TODO
+        Class<?> activityClass;
         try {
-            notificationIntent = new Intent(this, Class.forName("app.bandemic.ui.MainActivity"));
+            activityClass=Class.forName("app.bandemic.ui.MainActivity");
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            try {
+                activityClass=Class.forName("com.reactnativeapp.MainActivity");
+            } catch (ClassNotFoundException ex) {
+                ex.printStackTrace();
+                return;
+            }
         }
+        Intent notificationIntent = new Intent(this, activityClass);
 
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
                 notificationIntent, 0);
@@ -160,13 +168,6 @@ public class TracingService extends Service {
         runAsForgroundService();
         return START_STICKY;
     }
-
-    TracingServiceInterface.Stub binder = new TracingServiceInterface.Stub() {
-        @Override
-        public void setDistanceCallback(DistanceCallback distanceCallback){
-            beaconCache.setDistanceCallback(distanceCallback);
-        }
-    };
 
     /*
     Don't do anything here, because the service doesn't have to communicate to other apps
