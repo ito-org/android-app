@@ -7,16 +7,12 @@ import android.util.Log;
 import androidx.collection.CircularArray;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
 import org.itoapp.DistanceCallback;
-import org.itoapp.strict.database.Beacon;
-import org.itoapp.strict.repository.BroadcastRepository;
+import org.itoapp.strict.database.ItoDBHelper;
 
-import okhttp3.Cache;
 import okio.ByteString;
 
 public class BeaconCache {
@@ -24,13 +20,13 @@ public class BeaconCache {
     private final int MOVING_AVERAGE_LENGTH = 7;
     private final long FLUSH_AFTER_MILLIS = 1000 * 60 * 3; // flush after three minutes
 
-    private BroadcastRepository broadcastRepository;
+    private ItoDBHelper dbHelper;
     private Handler serviceHandler;
     private HashMap<ByteString, CacheEntry> cache = new HashMap<>();
     private DistanceCallback distanceCallback;
 
-    public BeaconCache(BroadcastRepository broadcastRepository, Handler serviceHandler) {
-        this.broadcastRepository = broadcastRepository;
+    public BeaconCache(ItoDBHelper dbHelper, Handler serviceHandler) {
+        this.dbHelper = dbHelper;
         this.serviceHandler = serviceHandler;
     }
 
@@ -45,7 +41,7 @@ public class BeaconCache {
         if (avg < entry.lowestDistance) {
             entry.lowestDistance = avg;
         }
-        insertIntoDB(entry.hash, entry.lowestDistance, entry.firstReceived, entry.lastReceived - entry.firstReceived);
+        dbHelper.insertContact(entry.hash, (int) entry.lowestDistance, (int) (entry.lastReceived - entry.firstReceived));
         cache.remove(hash);
     }
 
@@ -111,15 +107,6 @@ public class BeaconCache {
         }
 
         return distances;
-    }
-
-    private void insertIntoDB(byte[] hash, double distance, long startTime, long duration) {
-        broadcastRepository.insertBeacon(new Beacon(
-                hash,
-                new Date(startTime),
-                duration,
-                distance
-        ));
     }
 
     public void setDistanceCallback(DistanceCallback distanceCallback) {

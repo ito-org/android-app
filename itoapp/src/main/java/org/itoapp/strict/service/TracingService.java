@@ -24,13 +24,10 @@ import androidx.core.app.NotificationCompat;
 import org.itoapp.DistanceCallback;
 import org.itoapp.TracingServiceInterface;
 import org.itoapp.strict.Helper;
-import org.itoapp.strict.database.Infection;
-import org.itoapp.strict.database.OwnUUID;
-import org.itoapp.strict.repository.BroadcastRepository;
-import org.itoapp.strict.repository.InfectedUUIDRepository;
+import org.itoapp.strict.database.ItoDBHelper;
+import org.itoapp.strict.network.NetworkHelper;
 
 import java.security.SecureRandom;
-import java.util.Date;
 import java.util.List;
 
 public class TracingService extends Service {
@@ -55,8 +52,8 @@ public class TracingService extends Service {
             beaconCache.setDistanceCallback(distanceCallback);
         }
     };
-    private InfectedUUIDRepository infectedUUIDRepository;
-    private BroadcastRepository broadcastRepository;
+    private NetworkHelper infectedUUIDRepository;
+    private ItoDBHelper dbHelper;
     private Runnable regenerateUUID = () -> {
         Log.i(LOG_TAG, "Regenerating UUID");
 
@@ -64,7 +61,7 @@ public class TracingService extends Service {
         uuidGenerator.nextBytes(uuid);
         byte[] hashedUUID = Helper.calculateTruncatedSHA256(uuid);
 
-        broadcastRepository.insertOwnUUID(new OwnUUID(uuid, new Date(System.currentTimeMillis())));
+        dbHelper.insertBeacon(uuid);
 
         byte[] broadcastData = new byte[BROADCAST_LENGTH];
         broadcastData[BROADCAST_LENGTH - 1] = getTransmitPower();
@@ -81,10 +78,10 @@ public class TracingService extends Service {
 
             @Override
             protected Void doInBackground(Void... voids) {
-                infectedUUIDRepository.refreshInfectedUUIDs();
-                List<Infection> infections = infectedUUIDRepository.getPossiblyInfectedEncounters().getValue();
-                if (infections != null) {
-                    Log.w(LOG_TAG, "Possibly encountered UUIDs: " + infections.size());
+                NetworkHelper.refreshInfectedUUIDs(dbHelper);
+                List<ItoDBHelper.ContactResult> contactResults = dbHelper.selectInfectedContacts();
+                if (!contactResults.isEmpty()) {
+                    Log.w(LOG_TAG, "Possibly encountered UUIDs: " + contactResults.size());
                 }
                 serviceHandler.postDelayed(checkServer, CHECK_SERVER_TIME);
                 return null;
@@ -101,8 +98,7 @@ public class TracingService extends Service {
     public void onCreate() {
         super.onCreate();
         uuidGenerator = new SecureRandom();
-        infectedUUIDRepository = new InfectedUUIDRepository(this.getApplication());
-        broadcastRepository = new BroadcastRepository(this.getApplication());
+        dbHelper = new ItoDBHelper(this);
         HandlerThread thread = new HandlerThread("TrackerHandler", Thread.NORM_PRIORITY);
         thread.start();
 
@@ -114,7 +110,7 @@ public class TracingService extends Service {
         assert bluetoothManager != null;
         BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
 
-        beaconCache = new BeaconCache(broadcastRepository, serviceHandler);
+        beaconCache = new BeaconCache(dbHelper, serviceHandler);
         bleScanner = new BleScanner(bluetoothAdapter, beaconCache);
         bleAdvertiser = new BleAdvertiser(bluetoothAdapter, serviceHandler);
 

@@ -19,7 +19,7 @@ import android.widget.LinearLayout;
 import androidx.cardview.widget.CardView;
 
 import app.bandemic.R;
-import app.bandemic.ui.InfectedUUIDsAdapter;
+//import app.bandemic.ui.InfectedUUIDsAdapter;
 import app.bandemic.viewmodel.InfectionCheckViewModel;
 import app.bandemic.viewmodel.MainActivityViewModel;
 
@@ -29,7 +29,7 @@ public class InfectionCheckFragment extends Fragment {
     private MainActivityViewModel mainActivityViewModel;
 
     private RecyclerView recyclerView;
-    private InfectedUUIDsAdapter mAdapter;
+    //private InfectedUUIDsAdapter mAdapter;
     private RecyclerView.LayoutManager layoutManager;
     private LinearLayout noInfectionInformation;
     private CardView cardView;
@@ -52,8 +52,8 @@ public class InfectionCheckFragment extends Fragment {
         recyclerView.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(layoutManager);
-        mAdapter = new InfectedUUIDsAdapter();
-        recyclerView.setAdapter(mAdapter);
+        //mAdapter = new InfectedUUIDsAdapter();
+        //recyclerView.setAdapter(mAdapter);
         cardView = view.findViewById(R.id.infectionCheckFragment);
     }
 
@@ -70,7 +70,7 @@ public class InfectionCheckFragment extends Fragment {
             }
         });
 
-        mViewModel.getPossiblyInfectedEncounters().observe(getViewLifecycleOwner(), infectedUUIDS -> {
+        /*mViewModel.getPossiblyInfectedEncounters().observe(getViewLifecycleOwner(), infectedUUIDS -> {
             mainActivityViewModel.finishRefresh();
             if(infectedUUIDS.size() != 0) {
                 mAdapter.setInfectedUUIDs(infectedUUIDS);
@@ -84,7 +84,7 @@ public class InfectionCheckFragment extends Fragment {
                 recyclerView.setVisibility(View.GONE);
                 cardView.setCardBackgroundColor(getResources().getColor(R.color.colorNoDanger));
             }
-        });
+        });*/
 
         //mViewModel.refreshInfectedUUIDs();
     }

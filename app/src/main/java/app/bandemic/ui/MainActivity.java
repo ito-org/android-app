@@ -12,28 +12,27 @@ import android.os.RemoteException;
 import android.util.Log;
 import android.view.View;
 
-import androidx.preference.PreferenceManager;
-import app.bandemic.R;
-
-import org.itoapp.DistanceCallback;
-import org.itoapp.TracingServiceInterface;
-import org.itoapp.strict.database.AppDatabase;
-import org.itoapp.strict.service.TracingService;
-import app.bandemic.viewmodel.MainActivityViewModel;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import org.itoapp.DistanceCallback;
+import org.itoapp.TracingServiceInterface;
+import org.itoapp.strict.service.TracingService;
 
 import java.util.Arrays;
 
+import app.bandemic.R;
+import app.bandemic.viewmodel.MainActivityViewModel;
+
 public class MainActivity extends AppCompatActivity {
 
-    private final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     public static final String PREFERENCE_DATA_OK = "data_ok";
-
+    private final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    ServiceConnection connection;
     private MainActivityViewModel mViewModel;
 
     @Override
@@ -53,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
         checkPermissions();
 
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        if(!sharedPref.getBoolean(PREFERENCE_DATA_OK, false)) {
+        if (!sharedPref.getBoolean(PREFERENCE_DATA_OK, false)) {
             startActivity(new Intent(this, Instructions.class));
         }
     }
@@ -65,37 +64,42 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-        }
-        else {
+        } else {
             startTracingService();
         }
     }
 
-    ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            try {
-                ((TracingServiceInterface)service).setDistanceCallback(new DistanceCallback.Stub() {
-                    @Override
-                    public void onDistanceMeasurements(float[] distance) throws RemoteException {
-                        Log.d("MainActivity", Arrays.toString(distance));
-                    }
-                });
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-
-        }
-    };
+    @Override
+    protected void onDestroy() {
+        if (connection != null)
+            unbindService(connection);
+        super.onDestroy();
+    }
 
     private void startTracingService() {
         Intent intent = new Intent(this, TracingService.class);
         startService(intent);
 
+        connection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                try {
+                    ((TracingServiceInterface) service).setDistanceCallback(new DistanceCallback.Stub() {
+                        @Override
+                        public void onDistanceMeasurements(float[] distance) throws RemoteException {
+                            Log.d("MainActivity", Arrays.toString(distance));
+                        }
+                    });
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+
+            }
+        };
         bindService(intent, connection, BIND_ABOVE_CLIENT);
     }
 

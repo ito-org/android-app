@@ -6,7 +6,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import app.bandemic.R;
-import org.itoapp.strict.database.Beacon;
 
 import java.text.SimpleDateFormat;
 import java.util.Collections;
@@ -17,7 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class EnvironmentDevicesAdapter extends RecyclerView.Adapter<EnvironmentDevicesAdapter.EnvironmentDevicesViewHolder> {
 
-    private List<Beacon> beacons = Collections.emptyList();
+    //private List<Beacon> beacons = Collections.emptyList();
 
     public static class EnvironmentDevicesViewHolder extends RecyclerView.ViewHolder {
         public LinearLayout layout;
@@ -43,19 +42,20 @@ public class EnvironmentDevicesAdapter extends RecyclerView.Adapter<EnvironmentD
 
     @Override
     public void onBindViewHolder(@NonNull EnvironmentDevicesViewHolder holder, int position) {
-        Beacon data = beacons.get(position);
+        /*Beacon data = beacons.get(position);
 
         holder.textViewDate.setText(SimpleDateFormat.getDateTimeInstance().format(data.timestamp));
-        holder.textViewDistance.setText(String.format("%.1f m", data.distance));
+        holder.textViewDistance.setText(String.format("%.1f m", data.distance));*/
     }
 
     @Override
     public int getItemCount() {
-        return beacons.size();
+        //return beacons.size();
+        return 0;
     }
 
-    public void setBeacons(List<Beacon> beacons) {
-        this.beacons = beacons;
+    public void setBeacons(List<?> beacons) {
+        //this.beacons = beacons;
         notifyDataSetChanged();
     }
 }

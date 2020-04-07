@@ -19,7 +19,6 @@ import androidx.cardview.widget.CardView;
 import android.widget.LinearLayout;
 
 import app.bandemic.R;
-import org.itoapp.strict.database.Beacon;
 import app.bandemic.ui.EnvironmentDevicesAdapter;
 import app.bandemic.viewmodel.EnvironmentLoggerViewModel;
 
@@ -67,7 +66,7 @@ public class EnvironmentLoggerFragment extends Fragment {
         mViewModel = ViewModelProviders.of(this).get(EnvironmentLoggerViewModel.class);
         cardView.setCardBackgroundColor(getResources().getColor(R.color.colorNoDanger));
 
-        mViewModel.getDistinctBeacons().observe(getViewLifecycleOwner(), new Observer<List<Beacon>>() {
+        /*mViewModel.getDistinctBeacons().observe(getViewLifecycleOwner(), new Observer<List<Beacon>>() {
             @Override
             public void onChanged(List<Beacon> beacons) {
                 if(beacons.size() != 0) {
@@ -87,6 +86,6 @@ public class EnvironmentLoggerFragment extends Fragment {
 
                 }
             }
-        });
+        });*/
     }
 }
