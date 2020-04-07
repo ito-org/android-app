@@ -1,37 +1,32 @@
 package org.itoapp.strict.database;
 
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
+
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Date;
 
-import androidx.room.Entity;
-import androidx.room.PrimaryKey;
-
-@Entity
+@Entity(indices = {@Index(value = {"hashedUUID"}, unique = true)})
 public class InfectedUUID {
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     @SerializedName("id")
-    public int id;
+    public int id = 0;
     @SerializedName("created_on")
     public Date createdOn;
-    @SerializedName("distrust_level")
-    public int distrustLevel;
-    @SerializedName("hashed_id")
-    public byte[] hashedId; // this is actually double hashed
-    @SerializedName("icd_code")
-    public String icdCode;
+    @SerializedName("uuid")
+    public byte[] uuid;
+    @SerializedName("hashedUUID")
+    public byte[] hashedUUID;
 
     public InfectedUUID(
-            int id,
             Date createdOn,
-            int distrustLevel,
-            byte[] hashedId,
-            String icdCode
+            byte[] uuid,
+            byte[] hashedUUID
     ) {
-        this.id = id;
         this.createdOn = createdOn;
-        this.distrustLevel = distrustLevel;
-        this.hashedId = hashedId;
-        this.icdCode = icdCode;
+        this.uuid = uuid;
+        this.hashedUUID = hashedUUID;
     }
 }

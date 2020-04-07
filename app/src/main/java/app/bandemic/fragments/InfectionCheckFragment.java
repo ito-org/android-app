@@ -86,6 +86,6 @@ public class InfectionCheckFragment extends Fragment {
             }
         });
 
-        mViewModel.refreshInfectedUUIDs();
+        //mViewModel.refreshInfectedUUIDs();
     }
 }

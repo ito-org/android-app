@@ -11,6 +11,7 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -22,65 +23,73 @@ import androidx.core.app.NotificationCompat;
 
 import org.itoapp.DistanceCallback;
 import org.itoapp.TracingServiceInterface;
+import org.itoapp.strict.Helper;
+import org.itoapp.strict.database.Infection;
 import org.itoapp.strict.database.OwnUUID;
 import org.itoapp.strict.repository.BroadcastRepository;
+import org.itoapp.strict.repository.InfectedUUIDRepository;
 
-import java.nio.ByteBuffer;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
+import java.security.SecureRandom;
 import java.util.Date;
-import java.util.UUID;
+import java.util.List;
 
 public class TracingService extends Service {
     public static final int BLUETOOTH_COMPANY_ID = 65535; // TODO get a real company ID!
+    public static final int UUID_LENGTH = 16;
     public static final int HASH_LENGTH = 26;
     public static final int BROADCAST_LENGTH = HASH_LENGTH + 1;
     private static final String LOG_TAG = "TracingService";
     private static final String DEFAULT_NOTIFICATION_CHANNEL = "ContactTracing";
     private static final int NOTIFICATION_ID = 1;
     private static final int UUID_VALID_TIME = 1000 * 60 * 30; //ms * sec * 30 min
-
+    private static final int CHECK_SERVER_TIME = 1000 * 60 * 5; //ms * sec * 5 min
+    private SecureRandom uuidGenerator;
     private Looper serviceLooper;
     private Handler serviceHandler;
     private BleScanner bleScanner;
     private BleAdvertiser bleAdvertiser;
     private BeaconCache beaconCache;
-    TracingServiceInterface.Stub binder = new TracingServiceInterface.Stub() {
+    private TracingServiceInterface.Stub binder = new TracingServiceInterface.Stub() {
         @Override
         public void setDistanceCallback(DistanceCallback distanceCallback) {
             beaconCache.setDistanceCallback(distanceCallback);
         }
     };
-    private UUID currentUUID;
+    private InfectedUUIDRepository infectedUUIDRepository;
     private BroadcastRepository broadcastRepository;
     private Runnable regenerateUUID = () -> {
         Log.i(LOG_TAG, "Regenerating UUID");
 
-        currentUUID = UUID.randomUUID();
-        long time = System.currentTimeMillis();
-        broadcastRepository.insertOwnUUID(new OwnUUID(currentUUID, new Date(time)));
+        byte[] uuid = new byte[UUID_LENGTH];
+        uuidGenerator.nextBytes(uuid);
+        byte[] hashedUUID = Helper.calculateTruncatedSHA256(uuid);
 
-        // Convert the UUID to its SHA-256 hash
-        ByteBuffer inputBuffer = ByteBuffer.wrap(new byte[/*Long.BYTES*/ 8 * 2]);
-        inputBuffer.putLong(0, currentUUID.getMostSignificantBits());
-        inputBuffer.putLong(4, currentUUID.getLeastSignificantBits());
+        broadcastRepository.insertOwnUUID(new OwnUUID(uuid, new Date(System.currentTimeMillis())));
 
-        byte[] broadcastData;
-
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            broadcastData = digest.digest(inputBuffer.array());
-            broadcastData = Arrays.copyOf(broadcastData, BROADCAST_LENGTH);
-            broadcastData[HASH_LENGTH] = getTransmitPower();
-        } catch (NoSuchAlgorithmException e) {
-            Log.wtf(LOG_TAG, "Algorithm not found", e);
-            throw new RuntimeException(e);
-        }
+        byte[] broadcastData = new byte[BROADCAST_LENGTH];
+        broadcastData[BROADCAST_LENGTH - 1] = getTransmitPower();
+        System.arraycopy(hashedUUID, 0, broadcastData, 0, HASH_LENGTH);
 
         bleAdvertiser.setBroadcastData(broadcastData);
 
         serviceHandler.postDelayed(this.regenerateUUID, UUID_VALID_TIME);
+    };
+    //TODO move this to some alarmManager governed section.
+    // Also ideally check the server when connected to WIFI and charger
+    private Runnable checkServer = () -> {
+        new AsyncTask<Void, Void, Void>() {
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                infectedUUIDRepository.refreshInfectedUUIDs();
+                List<Infection> infections = infectedUUIDRepository.getPossiblyInfectedEncounters().getValue();
+                if (infections != null) {
+                    Log.w(LOG_TAG, "Possibly encountered UUIDs: " + infections.size());
+                }
+                serviceHandler.postDelayed(checkServer, CHECK_SERVER_TIME);
+                return null;
+            }
+        }.execute();
     };
 
     private byte getTransmitPower() {
@@ -91,6 +100,8 @@ public class TracingService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        uuidGenerator = new SecureRandom();
+        infectedUUIDRepository = new InfectedUUIDRepository(this.getApplication());
         broadcastRepository = new BroadcastRepository(this.getApplication());
         HandlerThread thread = new HandlerThread("TrackerHandler", Thread.NORM_PRIORITY);
         thread.start();
@@ -110,6 +121,7 @@ public class TracingService extends Service {
         regenerateUUID.run();
         bleAdvertiser.startAdvertising();
         bleScanner.startScanning();
+        serviceHandler.post(this.checkServer);
     }
 
     @TargetApi(26)
@@ -131,10 +143,10 @@ public class TracingService extends Service {
         //TODO
         Class<?> activityClass;
         try {
-            activityClass=Class.forName("app.bandemic.ui.MainActivity");
+            activityClass = Class.forName("app.bandemic.ui.MainActivity");
         } catch (ClassNotFoundException e) {
             try {
-                activityClass=Class.forName("com.reactnativeapp.MainActivity");
+                activityClass = Class.forName("com.reactnativeapp.MainActivity");
             } catch (ClassNotFoundException ex) {
                 ex.printStackTrace();
                 return;

@@ -22,9 +22,9 @@ public interface InfectedUUIDDao {
     User findByName(String first, String last);*/
 
     // TODO: change != to =, this is just for demo!!!!
-    @Query("SELECT infecteduuid.id, beacon.timestamp, distance, createdOn, distrustLevel, icdCode" +
+    @Query("SELECT infecteduuid.id, beacon.timestamp, distance, createdOn" +
             " FROM infecteduuid JOIN beacon ON" +
-            " infecteduuid.hashedId != beacon.receivedDoubleHash")
+            " infecteduuid.hashedUUID = beacon.receivedHash")
     LiveData<List<Infection>> getPossiblyInfectedEncounters();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

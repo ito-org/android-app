@@ -11,6 +11,4 @@ public class Infection {
     public Date encounterDate;
     public double distance;
     public Date createdOn;
-    public int distrustLevel;
-    public String icdCode;
 }

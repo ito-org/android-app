@@ -16,21 +16,12 @@ public class Beacon {
     @PrimaryKey(autoGenerate = true)
     public int id = 0;
     public byte[] receivedHash;
-    public byte[] receivedDoubleHash;
     public Date timestamp;
     public double distance;
     public long duration;
 
     public Beacon(byte[] receivedHash, Date timestamp, long duration, double distance) {
         this.receivedHash = receivedHash;
-        MessageDigest digest;
-        try {
-            digest = MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException e) {
-            Log.wtf(LOG_TAG, e);
-            throw new RuntimeException(e);
-        }
-        this.receivedDoubleHash = digest.digest(receivedHash);
         this.timestamp = timestamp;
         this.duration = duration;
         this.distance = distance;

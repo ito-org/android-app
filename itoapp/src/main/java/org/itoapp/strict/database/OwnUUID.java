@@ -11,10 +11,10 @@ import androidx.room.PrimaryKey;
 public class OwnUUID {
     @NonNull
     @PrimaryKey
-    public UUID ownUUID;
+    public byte[] ownUUID;
     public Date timestamp;
 
-    public OwnUUID(@NonNull UUID ownUUID, Date timestamp) {
+    public OwnUUID(@NonNull byte[] ownUUID, Date timestamp) {
         this.ownUUID = ownUUID;
         this.timestamp = timestamp;
     }

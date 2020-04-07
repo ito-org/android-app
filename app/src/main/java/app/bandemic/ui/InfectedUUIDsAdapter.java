@@ -54,11 +54,7 @@ public class InfectedUUIDsAdapter extends RecyclerView.Adapter<InfectedUUIDsAdap
 
         java.text.DateFormat df = DateFormat.getDateFormat(c);
         holder.textViewDate.setText(df.format(infection.encounterDate));
-        holder.textViewDisease.setText(infection.icdCode);
         holder.textViewDistance.setText(String.format("%.1f m", infection.distance));
-        holder.textViewDanger.setText(infection.distrustLevel == 0 ?
-                c.getResources().getString(R.string.verified) :
-                c.getResources().getString(R.string.unverified));
     }
 
     @Override

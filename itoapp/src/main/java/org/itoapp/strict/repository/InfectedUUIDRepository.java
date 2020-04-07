@@ -3,37 +3,40 @@ package org.itoapp.strict.repository;
 import android.app.Application;
 import android.util.Log;
 
+import androidx.lifecycle.LiveData;
+
+import org.apache.commons.codec.binary.Hex;
+import org.itoapp.strict.Helper;
 import org.itoapp.strict.database.AppDatabase;
 import org.itoapp.strict.database.InfectedUUID;
 import org.itoapp.strict.database.InfectedUUIDDao;
 import org.itoapp.strict.database.Infection;
-import org.itoapp.strict.network.InfectedUUIDResponse;
-import org.itoapp.strict.network.InfectionchainWebservice;
-import org.itoapp.strict.network.RetrofitClient;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Date;
 import java.util.List;
 
-import androidx.lifecycle.LiveData;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import static org.itoapp.strict.service.TracingService.UUID_LENGTH;
 
 public class InfectedUUIDRepository {
 
     private static final String LOG_TAG = "InfectedUUIDRepository";
+    private static final String BASE_URL = "http://192.168.1.10:5000/";
 
-    private InfectionchainWebservice webservice;
 
     private InfectedUUIDDao infectedUUIDDao;
 
     public InfectedUUIDRepository(Application application) {
-        webservice = RetrofitClient.getInfectionchainWebservice();
         AppDatabase db = AppDatabase.getDatabase(application);
         infectedUUIDDao = db.infectedUUIDDao();
     }
 
     public LiveData<List<InfectedUUID>> getInfectedUUIDs() {
-        refreshInfectedUUIDs();
         return infectedUUIDDao.getAll();
     }
 
@@ -41,28 +44,36 @@ public class InfectedUUIDRepository {
         return infectedUUIDDao.getPossiblyInfectedEncounters();
     }
 
+    private void insertInfectedUUID(byte[] infectedUUID) {
+        byte[] hashedUUID = Helper.calculateTruncatedSHA256(infectedUUID);
+        InfectedUUID infectedUuidObj = new InfectedUUID(new Date(System.currentTimeMillis()), infectedUUID, hashedUUID);
+        infectedUUIDDao.insertAll(infectedUuidObj);
+    }
+
     public void refreshInfectedUUIDs() {
-        webservice.getInfectedUUIDResponse().enqueue(new Callback<InfectedUUIDResponse>() {
-            @Override
-            public void onResponse(Call<InfectedUUIDResponse> call, Response<InfectedUUIDResponse> response) {
-                AppDatabase.databaseWriteExecutor.execute(() -> {
-                    if(response.body() != null) {
-                        infectedUUIDDao.insertAll(response.body().data.toArray(new InfectedUUID[response.body().data.size()]));
-                    }
-                    else {
-                        // TODO: error handling!
-                        Log.e(LOG_TAG, "Invalid response from api");
-                    }
-
-                });
+        List<InfectedUUID> infectedUUIDs = getInfectedUUIDs().getValue();
+        InfectedUUID lastInfectedUUID = (infectedUUIDs == null || infectedUUIDs.isEmpty()) ? null : infectedUUIDs.get(infectedUUIDs.size() - 1);
+        HttpURLConnection urlConnection = null;
+        try {
+            //TODO use a more sophisticated library
+            String appendix = lastInfectedUUID == null ? "" : "?uuid=" + Hex.encodeHexString(lastInfectedUUID.uuid);
+            URL url = new URL(BASE_URL + "get_uuids" + appendix);
+            urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.addRequestProperty("Accept", "application/octet-stream");
+            InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+            byte[] uuid = new byte[UUID_LENGTH];
+            while (in.read(uuid) == UUID_LENGTH) {
+                insertInfectedUUID(uuid);
             }
 
-            @Override
-            public void onFailure(Call<InfectedUUIDResponse> call, Throwable t) {
-                // TODO error handling
-                //Log.e(LOG_TAG, t.getCause().getMessage());
-                //Log.e(LOG_TAG, t.getMessage() + t.getStackTrace().toString());
-            }
-        });
+        } catch (MalformedURLException e) {
+            Log.wtf(LOG_TAG, "Malformed URL?!", e);
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (urlConnection != null)
+                urlConnection.disconnect();
+        }
     }
 }
