@@ -52,7 +52,6 @@ public class TracingService extends Service {
             beaconCache.setDistanceCallback(distanceCallback);
         }
     };
-    private NetworkHelper infectedUUIDRepository;
     private ItoDBHelper dbHelper;
     private Runnable regenerateUUID = () -> {
         Log.i(LOG_TAG, "Regenerating UUID");

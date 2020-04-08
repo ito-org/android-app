@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static org.itoapp.strict.service.TracingService.HASH_LENGTH;
+
 public class ItoDBHelper extends SQLiteOpenHelper {
 
     private static final String LOG_TAG = "ItoDBHelper";
@@ -117,15 +119,24 @@ public class ItoDBHelper extends SQLiteOpenHelper {
         // not yet applicable
     }
 
-    public synchronized void insertBeacon(byte[] uuid) {
-        Log.d(LOG_TAG, "Inserting beacon");
+    private void checkUUID(byte[] uuid) {
         if (uuid == null || uuid.length != TracingService.UUID_LENGTH)
             throw new IllegalArgumentException();
+    }
+    private void checkHashedUUID(byte[] hashedUUID) {
+
+        if (hashedUUID == null || hashedUUID.length != HASH_LENGTH)
+            throw new IllegalArgumentException();
+    }
+
+    public synchronized void insertBeacon(byte[] uuid) {
+        Log.d(LOG_TAG, "Inserting beacon");
+        checkUUID(uuid);
 
         SQLiteDatabase database = getWritableDatabase();
         ContentValues contentValues = new ContentValues(1);
         contentValues.put("uuid", uuid);
-        database.insert("beacons", null, contentValues);
+        database.insertOrThrow("beacons", null, contentValues);
 
         //INSERT_BEACON_STATEMENT.bindBlob(1, uuid);
         //INSERT_BEACON_STATEMENT.executeInsert();
@@ -133,15 +144,14 @@ public class ItoDBHelper extends SQLiteOpenHelper {
 
     public synchronized void insertContact(byte[] hashed_uuid, int proximity, int duration) {
         Log.d(LOG_TAG, "Inserting contact");
-        if (hashed_uuid == null || hashed_uuid.length != TracingService.HASH_LENGTH)
-            throw new IllegalArgumentException();
+        checkHashedUUID(hashed_uuid);
 
         SQLiteDatabase database = getWritableDatabase();
         ContentValues contentValues = new ContentValues(3);
         contentValues.put("hashed_uuid", hashed_uuid);
         contentValues.put("proximity", proximity);
         contentValues.put("duration", duration);
-        database.insert("contacts", null, contentValues);
+        database.insertOrThrow("contacts", null, contentValues);
         /*
         INSERT_CONTACT_STATEMENT.bindBlob(1, hashed_uuid);
         INSERT_CONTACT_STATEMENT.bindLong(2, proximity);
@@ -151,12 +161,13 @@ public class ItoDBHelper extends SQLiteOpenHelper {
 
     public synchronized void insertInfected(byte[] uuid) {
         Log.d(LOG_TAG, "Inserting infected");
-        if (uuid == null || uuid.length != TracingService.UUID_LENGTH)
-            throw new IllegalArgumentException();
+        checkUUID(uuid);
 
-        INSERT_INFECTED_STATEMENT.bindBlob(1, uuid);
-        INSERT_INFECTED_STATEMENT.bindBlob(2, Helper.calculateTruncatedSHA256(uuid));
-        INSERT_INFECTED_STATEMENT.executeInsert();
+        SQLiteDatabase database = getWritableDatabase();
+        ContentValues contentValues = new ContentValues(2);
+        contentValues.put("uuid", uuid);
+        contentValues.put("hashed_uuid", Helper.calculateTruncatedSHA256(uuid));
+        database.insertWithOnConflict("infected", null, contentValues, SQLiteDatabase.CONFLICT_IGNORE);
     }
 
     public synchronized List<byte[]> selectBeacons(Date from, Date to) {
@@ -167,8 +178,8 @@ public class ItoDBHelper extends SQLiteOpenHelper {
         SQLiteDatabase database = getReadableDatabase();
         Cursor cursor = database.query("beacons", //table
                 new String[]{"uuid"}, //columns
-                "? < timestamp AND timestamp < ?", //selection
-                new String[]{from.getTime() + "", to.getTime() + ""}, //selectionArgs
+                "datetime(?, 'unixepoch') < timestamp AND timestamp < datetime(?, 'unixepoch')", //selection
+                new String[]{from.getTime() / 1000 + "", to.getTime() / 1000 + ""}, //selectionArgs
                 null, //groupBy
                 null, //having
                 null, //orderBy
