@@ -15,8 +15,7 @@ import java.util.Random;
 
 import static org.itoapp.strict.service.TracingService.UUID_LENGTH;
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals
-        ;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -52,8 +51,8 @@ public class DatabaseInstrumentedTest {
         byte[] beaconUUID = new byte[UUID_LENGTH];
         new Random().nextBytes(beaconUUID); // insert random values
         itoDBHelper.insertBeacon(beaconUUID);
-        Date from = new Date(System.currentTimeMillis() - 1000);
-        Date to = new Date(System.currentTimeMillis() + 1000);
+        long from = System.currentTimeMillis() - 1000;
+        long to = System.currentTimeMillis() + 1000;
         List<byte[]> beacons = itoDBHelper.selectBeacons(from, to); // query this beacon again
         assertArrayEquals(beaconUUID, beacons.get(0));
     }
@@ -82,5 +81,19 @@ public class DatabaseInstrumentedTest {
         ItoDBHelper.ContactResult contactResult = contacts.get(0);
         assertEquals(proximity, contactResult.proximity);
         assertEquals(duration, contactResult.duration);
+    }
+
+    @Test
+    public void testDeletionAfter14Days() {
+        //you might not want to run this :P
+
+        byte[] beaconUUID = new byte[UUID_LENGTH];
+        new Random().nextBytes(beaconUUID); // insert random values
+        itoDBHelper.insertBeacon(beaconUUID);
+        long from = System.currentTimeMillis() - 1000;
+        long to = System.currentTimeMillis() + 1000;
+        sleep(1000 * 60 * 60 * 24 * 14 + 1000); //wait 14 days and one second
+        List<byte[]> beacons = itoDBHelper.selectBeacons(from, to); // query this beacon again
+        assertEquals(0, beacons.size());
     }
 }

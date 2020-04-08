@@ -6,53 +6,48 @@ import android.util.Log;
 
 import androidx.collection.CircularArray;
 
+import org.itoapp.DistanceCallback;
+import org.itoapp.strict.database.ItoDBHelper;
+
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.itoapp.DistanceCallback;
-import org.itoapp.strict.database.ItoDBHelper;
-
-import okio.ByteString;
-
-public class BeaconCache {
-    private static final String LOG_TAG = "BeaconCache";
+public class ContactCache {
+    private static final String LOG_TAG = "ContactCache";
     private final int MOVING_AVERAGE_LENGTH = 7;
     private final long FLUSH_AFTER_MILLIS = 1000 * 60 * 3; // flush after three minutes
+    private final long MIN_CONTACT_DURATION = 1000 * 60 * 3; //discard all contacts less than 3 minutes
 
     private ItoDBHelper dbHelper;
     private Handler serviceHandler;
-    private HashMap<ByteString, CacheEntry> cache = new HashMap<>();
+    private HashMap<ByteBuffer, CacheEntry> cache = new HashMap<>();
     private DistanceCallback distanceCallback;
 
-    public BeaconCache(ItoDBHelper dbHelper, Handler serviceHandler) {
+    public ContactCache(ItoDBHelper dbHelper, Handler serviceHandler) {
         this.dbHelper = dbHelper;
         this.serviceHandler = serviceHandler;
     }
 
-    private void flush(ByteString hash) {
+    private void flush(ByteBuffer hash) {
         Log.d(LOG_TAG, "Flushing distance to DB");
         CacheEntry entry = cache.get(hash);
-        CircularArray<Double> distances = entry.distances;
-        double avg = 0;
-        for (int i = 0; i < distances.size(); i++) {
-            avg += distances.get(i) / distances.size();
-        }
-        if (avg < entry.lowestDistance) {
-            entry.lowestDistance = avg;
-        }
-        dbHelper.insertContact(entry.hash, (int) entry.lowestDistance, (int) (entry.lastReceived - entry.firstReceived));
+        entry.lowestDistance = Math.min(calculateDistance(entry), entry.lowestDistance);
+        int contactDuration = (int) (entry.lastReceived - entry.firstReceived);
+        if (contactDuration > MIN_CONTACT_DURATION)
+            dbHelper.insertContact(entry.hash, (int) entry.lowestDistance, contactDuration);
         cache.remove(hash);
     }
 
     public void flush() {
-        for (ByteString hash : cache.keySet()) {
+        for (ByteBuffer hash : cache.keySet()) {
             flush(hash);
         }
     }
 
-    public void addReceivedBroadcast(byte[] hash, double distance) {
-        ByteString hashString = ByteString.of(hash);
+    public void addReceivedBroadcast(byte[] hash, float distance) {
+        ByteBuffer hashString = ByteBuffer.wrap(hash);
         CacheEntry entry = cache.get(hashString);
 
         if (entry == null) {
@@ -69,23 +64,13 @@ public class BeaconCache {
         serviceHandler.removeCallbacks(entry.flushRunnable);
         serviceHandler.postDelayed(entry.flushRunnable, FLUSH_AFTER_MILLIS);
 
-        CircularArray<Double> distances = entry.distances;
+        CircularArray<Float> distances = entry.distances;
         distances.addFirst(distance);
         if (distances.size() == MOVING_AVERAGE_LENGTH) {
-
-            //calculate moving average
-            double avg = 0;
-            for (int i = 0; i < MOVING_AVERAGE_LENGTH; i++) {
-                avg += distances.get(i) / MOVING_AVERAGE_LENGTH;
-            }
-            if (avg < entry.lowestDistance) {
-                //insert new lowest value to DB
-                entry.lowestDistance = avg;
-                //insertIntoDB(hash, avg);
-            }
+            entry.lowestDistance = Math.min(calculateDistance(entry), entry.lowestDistance);
             distances.popLast();
         }
-        if(distanceCallback != null) {
+        if (distanceCallback != null) {
             try {
                 distanceCallback.onDistanceMeasurements(calculateDistances());
             } catch (RemoteException e) {
@@ -94,16 +79,22 @@ public class BeaconCache {
         }
     }
 
+    private float calculateDistance(CacheEntry cacheEntry) {
+        CircularArray<Float> measuredDistances = cacheEntry.distances;
+        float distance = 0;
+
+        for (int j = 0; j < measuredDistances.size(); j++) {
+            distance += measuredDistances.get(j) / measuredDistances.size();
+        }
+        return distance;
+    }
+
     private float[] calculateDistances() {
         float[] distances = new float[cache.size()];
         List<CacheEntry> cacheEntries = new ArrayList<>(cache.values());
-        for(int i = 0; i < distances.length; i++){
+        for (int i = 0; i < distances.length; i++) {
             CacheEntry cacheEntry = cacheEntries.get(i);
-            CircularArray<Double> individualDistances = cacheEntry.distances;
-
-            for (int j = 0; j < individualDistances.size(); j++) {
-                distances[i] += individualDistances.get(j) / individualDistances.size();
-            }
+            distances[i] = calculateDistance(cacheEntry);
         }
 
         return distances;
@@ -117,8 +108,8 @@ public class BeaconCache {
         long firstReceived;
         long lastReceived;
         byte[] hash;
-        CircularArray<Double> distances = new CircularArray<>(MOVING_AVERAGE_LENGTH);
-        double lowestDistance = Double.MAX_VALUE;
-        Runnable flushRunnable = () -> flush(ByteString.of(hash));
+        CircularArray<Float> distances = new CircularArray<>(MOVING_AVERAGE_LENGTH);
+        float lowestDistance = Float.MAX_VALUE;
+        Runnable flushRunnable = () -> flush(ByteBuffer.wrap(hash));
     }
 }

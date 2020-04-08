@@ -17,16 +17,19 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.RemoteException;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
 import org.itoapp.DistanceCallback;
+import org.itoapp.PublishUUIDsCallback;
 import org.itoapp.TracingServiceInterface;
 import org.itoapp.strict.Helper;
 import org.itoapp.strict.database.ItoDBHelper;
 import org.itoapp.strict.network.NetworkHelper;
 
+import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.List;
 
@@ -45,14 +48,45 @@ public class TracingService extends Service {
     private Handler serviceHandler;
     private BleScanner bleScanner;
     private BleAdvertiser bleAdvertiser;
-    private BeaconCache beaconCache;
+    private ContactCache contactCache;
+    private ItoDBHelper dbHelper;
     private TracingServiceInterface.Stub binder = new TracingServiceInterface.Stub() {
         @Override
         public void setDistanceCallback(DistanceCallback distanceCallback) {
-            beaconCache.setDistanceCallback(distanceCallback);
+            contactCache.setDistanceCallback(distanceCallback);
+        }
+
+        @Override
+        public void publishBeaconUUIDs(long from, long to, PublishUUIDsCallback callback) {
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    try {
+                        NetworkHelper.publishUUIDs(dbHelper.selectBeacons(from, to));
+                        try {
+                            callback.onSuccess();
+                        } catch (RemoteException e) {
+                            Log.e(LOG_TAG, "._.", e);
+                        }
+                    } catch (IOException e) {
+                        Log.e(LOG_TAG, "Could not publish UUIDs!", e);
+                        try {
+                            callback.onFailure();
+                        } catch (RemoteException ex) {
+                            Log.e(LOG_TAG, "._.", e);
+                        }
+                    }
+                    return null;
+                }
+            }.execute();
+        }
+
+        @Override
+        public boolean isPossiblyInfected() {
+            //TODO do async
+            return dbHelper.selectInfectedContacts().size() > 0;
         }
     };
-    private ItoDBHelper dbHelper;
     private Runnable regenerateUUID = () -> {
         Log.i(LOG_TAG, "Regenerating UUID");
 
@@ -74,7 +108,6 @@ public class TracingService extends Service {
     // Also ideally check the server when connected to WIFI and charger
     private Runnable checkServer = () -> {
         new AsyncTask<Void, Void, Void>() {
-
             @Override
             protected Void doInBackground(Void... voids) {
                 NetworkHelper.refreshInfectedUUIDs(dbHelper);
@@ -109,8 +142,8 @@ public class TracingService extends Service {
         assert bluetoothManager != null;
         BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
 
-        beaconCache = new BeaconCache(dbHelper, serviceHandler);
-        bleScanner = new BleScanner(bluetoothAdapter, beaconCache);
+        contactCache = new ContactCache(dbHelper, serviceHandler);
+        bleScanner = new BleScanner(bluetoothAdapter, contactCache);
         bleAdvertiser = new BleAdvertiser(bluetoothAdapter, serviceHandler);
 
         regenerateUUID.run();
@@ -166,7 +199,7 @@ public class TracingService extends Service {
     public void onDestroy() {
         bleAdvertiser.stopAdvertising();
         bleScanner.stopScanning();
-        beaconCache.flush();
+        contactCache.flush();
         super.onDestroy();
     }
 

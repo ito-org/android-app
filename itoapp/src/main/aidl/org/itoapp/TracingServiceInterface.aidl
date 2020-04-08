@@ -2,10 +2,12 @@
 package org.itoapp;
 
 import org.itoapp.DistanceCallback;
-
-// Declare any non-default types here with import statements
+import org.itoapp.PublishUUIDsCallback;
 
 interface TracingServiceInterface {
-
     void setDistanceCallback(DistanceCallback distanceCallback);
+
+    void publishBeaconUUIDs(long from, long to, PublishUUIDsCallback callback);
+
+    boolean isPossiblyInfected();
 }

@@ -22,11 +22,11 @@ public class BleScanner {
 
     private BluetoothLeScanner bluetoothLeScanner;
     private ScanCallback bluetoothScanCallback;
-    private BeaconCache beaconCache;
+    private ContactCache contactCache;
 
-    public BleScanner(BluetoothAdapter bluetoothAdapter, BeaconCache beaconCache) {
+    public BleScanner(BluetoothAdapter bluetoothAdapter, ContactCache contactCache) {
         bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
-        this.beaconCache = beaconCache;
+        this.contactCache = contactCache;
     }
 
     public void startScanning() {
@@ -56,11 +56,11 @@ public class BleScanner {
                 int rssi = result.getRssi();
 
                 // TODO take antenna attenuation into account
-                double distance = Math.pow(10d, ((double) txPower - rssi) / (10 * 2));
+                float distance = (float) Math.pow(10F, ((float) txPower - rssi) / (10 * 2));
 
                 Log.d(LOG_TAG, Arrays.toString(receivedHash) + ":" + distance);
 
-                beaconCache.addReceivedBroadcast(receivedHash, distance);
+                contactCache.addReceivedBroadcast(receivedHash, distance);
             }
         };
 
