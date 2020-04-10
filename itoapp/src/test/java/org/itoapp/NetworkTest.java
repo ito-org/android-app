@@ -7,11 +7,11 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 
 /**
@@ -25,7 +25,7 @@ public class NetworkTest {
     public void testNetwork() throws IOException {
 
         byte[] uuid = new byte[TracingService.UUID_LENGTH];
-        new Random().nextBytes(uuid);
+        //new Random().nextBytes(uuid);
 
         AtomicBoolean uuidReceived = new AtomicBoolean(false);
 
@@ -33,11 +33,19 @@ public class NetworkTest {
         Mockito.when(mockDB.selectRandomLastUUID()).thenReturn(null);
         Mockito.doAnswer(invocation -> {
             byte[] bytes = invocation.getArgumentAt(0, byte[].class);
-            uuidReceived.set(true);
+            if (Arrays.equals(bytes, uuid))
+                uuidReceived.set(true);
             return null;
         }).when(mockDB).insertInfected(Mockito.any(byte[].class));
 
         NetworkHelper.publishUUIDs(Collections.singletonList(uuid));
+
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         NetworkHelper.refreshInfectedUUIDs(mockDB);
 
         assertTrue(uuidReceived.get());

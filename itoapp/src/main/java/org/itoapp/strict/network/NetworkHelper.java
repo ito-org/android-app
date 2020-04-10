@@ -10,6 +10,7 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -55,7 +56,7 @@ public class NetworkHelper {
         }
     }
 
-    private static void writeUUIDJson(byte[] uuid, OutputStreamWriter outputStreamWriter) throws IOException {
+    private static void writeUUIDJson(byte[] uuid, Writer outputStreamWriter) throws IOException {
         outputStreamWriter.write("{\"uuid\":\"" + bytesToUUID(uuid).toString() + "\"}");
     }
 
@@ -66,7 +67,7 @@ public class NetworkHelper {
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setDoOutput(true);
             urlConnection.addRequestProperty("Content-Type", "application/json");
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new BufferedOutputStream(urlConnection.getOutputStream()));
+            Writer outputStreamWriter = new OutputStreamWriter(new BufferedOutputStream(urlConnection.getOutputStream()));
             outputStreamWriter.write("[");
 
             Iterator<byte[]> iterator = beacons.iterator();
@@ -78,6 +79,11 @@ public class NetworkHelper {
                 writeUUIDJson(iterator.next(), outputStreamWriter);
             }
             outputStreamWriter.write("]");
+            outputStreamWriter.close();
+
+            InputStreamReader inputStreamReader = new InputStreamReader(new BufferedInputStream(urlConnection.getInputStream()));
+            inputStreamReader.read();
+            inputStreamReader.close();
         } catch (MalformedURLException e) {
             Log.wtf(LOG_TAG, "Malformed URL?!", e);
             throw new RuntimeException(e);
