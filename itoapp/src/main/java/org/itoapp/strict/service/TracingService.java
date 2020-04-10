@@ -41,7 +41,7 @@ public class TracingService extends Service {
     private static final String LOG_TAG = "TracingService";
     private static final String DEFAULT_NOTIFICATION_CHANNEL = "ContactTracing";
     private static final int NOTIFICATION_ID = 1;
-    private static final int UUID_VALID_TIME = 1000 * 60 * 30; //ms * sec * 30 min
+    public static final int UUID_VALID_TIME = 1000 * 60 * 30; //ms * sec * 30 min
     private static final int CHECK_SERVER_TIME = 1000 * 60 * 5; //ms * sec * 5 min
     private SecureRandom uuidGenerator;
     private Looper serviceLooper;

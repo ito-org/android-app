@@ -17,7 +17,6 @@ import java.util.List;
 public class ContactCache {
     private static final String LOG_TAG = "ContactCache";
     private final int MOVING_AVERAGE_LENGTH = 7;
-    private final long FLUSH_AFTER_MILLIS = 1000 * 60 * 3; // flush after three minutes
     private final long MIN_CONTACT_DURATION = 1000 * 60 * 3; //discard all contacts less than 3 minutes
 
     private ItoDBHelper dbHelper;
@@ -62,7 +61,7 @@ public class ContactCache {
 
         // postpone flushing
         serviceHandler.removeCallbacks(entry.flushRunnable);
-        serviceHandler.postDelayed(entry.flushRunnable, FLUSH_AFTER_MILLIS);
+        serviceHandler.postDelayed(entry.flushRunnable, TracingService.UUID_VALID_TIME);
 
         CircularArray<Float> distances = entry.distances;
         distances.addFirst(distance);
