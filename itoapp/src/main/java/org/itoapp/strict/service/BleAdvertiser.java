@@ -8,7 +8,7 @@ import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.os.Handler;
 import android.util.Log;
 
-import static org.itoapp.strict.service.TracingService.BLUETOOTH_COMPANY_ID;
+import static org.itoapp.strict.Constants.BLUETOOTH_COMPANY_ID;
 
 public class BleAdvertiser {
     private static final String LOG_TAG = "BleAdvertiser";

@@ -8,7 +8,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.UUID;
 
-import static org.itoapp.strict.service.TracingService.HASH_LENGTH;
+import static org.itoapp.strict.Constants.HASH_LENGTH;
 
 public class Helper {
 

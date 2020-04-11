@@ -9,11 +9,10 @@ import org.itoapp.strict.database.ItoDBHelper;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
-import static org.itoapp.strict.service.TracingService.UUID_LENGTH;
+import static org.itoapp.strict.Constants.UUID_LENGTH;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 

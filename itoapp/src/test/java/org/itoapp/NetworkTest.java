@@ -1,15 +1,14 @@
 package org.itoapp;
 
+import org.itoapp.strict.Constants;
 import org.itoapp.strict.database.ItoDBHelper;
 import org.itoapp.strict.network.NetworkHelper;
-import org.itoapp.strict.service.TracingService;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static junit.framework.TestCase.assertTrue;
@@ -24,7 +23,7 @@ public class NetworkTest {
     @Test
     public void testNetwork() throws IOException {
 
-        byte[] uuid = new byte[TracingService.UUID_LENGTH];
+        byte[] uuid = new byte[Constants.UUID_LENGTH];
         //new Random().nextBytes(uuid);
 
         AtomicBoolean uuidReceived = new AtomicBoolean(false);

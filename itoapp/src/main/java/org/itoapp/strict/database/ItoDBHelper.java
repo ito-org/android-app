@@ -9,13 +9,13 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import org.itoapp.strict.Constants;
 import org.itoapp.strict.Helper;
-import org.itoapp.strict.service.TracingService;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.itoapp.strict.service.TracingService.HASH_LENGTH;
+import static org.itoapp.strict.Constants.HASH_LENGTH;
 
 public class ItoDBHelper extends SQLiteOpenHelper {
 
@@ -99,7 +99,7 @@ public class ItoDBHelper extends SQLiteOpenHelper {
     }
 
     private void checkUUID(byte[] uuid) {
-        if (uuid == null || uuid.length != TracingService.UUID_LENGTH)
+        if (uuid == null || uuid.length != Constants.UUID_LENGTH)
             throw new IllegalArgumentException();
     }
 

@@ -7,6 +7,7 @@ import android.util.Log;
 import androidx.collection.CircularArray;
 
 import org.itoapp.DistanceCallback;
+import org.itoapp.strict.Constants;
 import org.itoapp.strict.database.ItoDBHelper;
 
 import java.nio.ByteBuffer;
@@ -16,8 +17,6 @@ import java.util.List;
 
 public class ContactCache {
     private static final String LOG_TAG = "ContactCache";
-    private final int MOVING_AVERAGE_LENGTH = 7;
-    private final long MIN_CONTACT_DURATION = 1000 * 60 * 3; //discard all contacts less than 3 minutes
 
     private ItoDBHelper dbHelper;
     private Handler serviceHandler;
@@ -34,7 +33,7 @@ public class ContactCache {
         CacheEntry entry = cache.get(hash);
         entry.lowestDistance = Math.min(calculateDistance(entry), entry.lowestDistance);
         int contactDuration = (int) (entry.lastReceived - entry.firstReceived);
-        if (contactDuration > MIN_CONTACT_DURATION)
+        if (contactDuration > Constants.MIN_CONTACT_DURATION)
             dbHelper.insertContact(entry.hash, (int) entry.lowestDistance, contactDuration);
         cache.remove(hash);
     }
@@ -61,11 +60,11 @@ public class ContactCache {
 
         // postpone flushing
         serviceHandler.removeCallbacks(entry.flushRunnable);
-        serviceHandler.postDelayed(entry.flushRunnable, TracingService.UUID_VALID_TIME);
+        serviceHandler.postDelayed(entry.flushRunnable, Constants.UUID_VALID_INTERVAL);
 
         CircularArray<Float> distances = entry.distances;
         distances.addFirst(distance);
-        if (distances.size() == MOVING_AVERAGE_LENGTH) {
+        if (distances.size() == Constants.DISTANCE_SMOOTHING_MA_LENGTH) {
             entry.lowestDistance = Math.min(calculateDistance(entry), entry.lowestDistance);
             distances.popLast();
         }
@@ -107,7 +106,7 @@ public class ContactCache {
         long firstReceived;
         long lastReceived;
         byte[] hash;
-        CircularArray<Float> distances = new CircularArray<>(MOVING_AVERAGE_LENGTH);
+        CircularArray<Float> distances = new CircularArray<>(Constants.DISTANCE_SMOOTHING_MA_LENGTH);
         float lowestDistance = Float.MAX_VALUE;
         Runnable flushRunnable = () -> flush(ByteBuffer.wrap(hash));
     }

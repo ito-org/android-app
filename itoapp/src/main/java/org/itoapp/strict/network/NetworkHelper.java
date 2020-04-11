@@ -20,7 +20,7 @@ import java.util.UUID;
 
 import static org.itoapp.strict.Helper.bytesToUUID;
 import static org.itoapp.strict.Helper.uuidToBytes;
-import static org.itoapp.strict.service.TracingService.UUID_LENGTH;
+import static org.itoapp.strict.Constants.UUID_LENGTH;
 
 public class NetworkHelper {
 

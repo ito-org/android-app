@@ -13,9 +13,9 @@ import android.util.Log;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static org.itoapp.strict.service.TracingService.BLUETOOTH_COMPANY_ID;
-import static org.itoapp.strict.service.TracingService.BROADCAST_LENGTH;
-import static org.itoapp.strict.service.TracingService.HASH_LENGTH;
+import static org.itoapp.strict.Constants.BLUETOOTH_COMPANY_ID;
+import static org.itoapp.strict.Constants.BROADCAST_LENGTH;
+import static org.itoapp.strict.Constants.HASH_LENGTH;
 
 public class BleScanner {
     private static final String LOG_TAG = "BleScanner";
